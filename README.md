@@ -1,4 +1,5 @@
 
+
 The attached scripts replicate the simulation studies in "Inference for relative hazard and covariate-specific pure risk estimated from stratified and unstratified case-cohort data", by Etiévant and Gail (2022). The methods described in the article are implemented in the file `help.functions.R`.
 
 ### Required packages 
@@ -31,27 +32,27 @@ Each script relies on functions provided in `help.functions.R`.
 
 ### Functions provided in `help.functions.R`
 
-* **estimation** - estimation of log-relative hazard, baseline hazards at each unique event time, cumulative baseline hazard in a given time interval [$\tau_1$, $\tau_2$] and pure risk in [$\tau_1$, $\tau_2$] and for a given covariate profile $\bm{x}$.
+* **estimation** - estimation of log-relative hazard, baseline hazards at each unique event time, cumulative baseline hazard in a given time interval $\[\tau_1,\tau_2\]$ and pure risk in $\[\tau_1,\tau_2\]$ and for a given covariate profile $\boldsymbol{x}$.
 
-* **estimation.CumBH** - estimation of log-relative hazard, baseline hazards at each unique event time, cumulative baseline hazard in a given time interval [$\tau_1$, $\tau_2$].
+* **estimation.CumBH** - estimation of log-relative hazard, baseline hazards at each unique event time, cumulative baseline hazard in a given time interval $\[\tau_1,\tau_2\]$.
 
-* **estimation.PR** - estimation of pure risk in a given time interval [$\tau_1$, $\tau_2$] and for a given covariate profile $\bm{x}$, from the values of the log-relative hazard and cumulative baseline hazard in [$\tau_1$, $\tau_2$].
+* **estimation.PR** - estimation of pure risk in a given time interval $\[\tau_1,\tau_2\]$ and for a given covariate profile $\boldsymbol{x}$, from the values of the log-relative hazard and cumulative baseline hazard in $\[\tau_1,\tau_2\]$.
 
-* **influences** - estimation of influences on log-relative hazard, baseline hazards at each unique event time, cumulative baseline hazard in a given time interval [$\tau_1$, $\tau_2$] and the on pure risk in [$\tau_1$, $\tau_2$] and for a given covariate profile $\bm{x}$. Also provides parameters estimates. Can take calibration of the design weight into account if auxiliary variables observations are provided.
+* **influences** - estimation of influences on log-relative hazard, baseline hazards at each unique event time, cumulative baseline hazard in a given time interval $\[\tau_1,\tau_2\]$ and the on pure risk in $\[\tau_1,\tau_2\]$ and for a given covariate profile $\boldsymbol{x}$. Also provides parameters estimates. Can take calibration of the design weight into account if auxiliary variables observations are provided.
 
 * **influences.RH** - estimation of influences on log-relative hazard. Can take calibration of the design weight into account if auxiliary variables observations are provided.
 
-* **influences.CumBH** - estimation of influences on log-relative hazard, baseline hazards at each unique event time and cumulative baseline hazard in a given time interval [$\tau_1$, $\tau_2$]. Can take calibration of the design weight into account if auxiliary variables observations are provided.
+* **influences.CumBH** - estimation of influences on log-relative hazard, baseline hazards at each unique event time and cumulative baseline hazard in a given time interval $\[\tau_1,\tau_2\]$. Can take calibration of the design weight into account if auxiliary variables observations are provided.
 
-* **influences.PR** - estimation of influences on the on pure risk in a given time interval [$\tau_1$, $\tau_2$] and for a given covariate profile $\bm{x}$, from that of the log-relative hazard and cumulative baseline hazard in [$\tau_1$, $\tau_2$]. Can take calibration of the design weight into account if auxiliary variables observations are provided.
+* **influences.PR** - estimation of influences on the on pure risk in a given time interval $\[\tau_1,\tau_2\]$ and for a given covariate profile $\boldsymbol{x}$, from that of the log-relative hazard and cumulative baseline hazard in $\[\tau_1,\tau_2\]$. Can take calibration of the design weight into account if auxiliary variables observations are provided.
 
-* **influences.missingdata** - estimation of influences on log-relative hazard, baseline hazards at each unique event time, cumulative baseline hazard in a given time interval [$\tau_1$, $\tau_2$] and the on pure risk in [$\tau_1$, $\tau_2$] and for a given covariate profile $\bm{x}$, when covariate data is missing for individuals in the case cohort. Also provides parameters estimates.
+* **influences.missingdata** - estimation of influences on log-relative hazard, baseline hazards at each unique event time, cumulative baseline hazard in a given time interval $\[\tau_1,\tau_2\]$ and the on pure risk in $\[\tau_1,\tau_2\]$ and for a given covariate profile $\boldsymbol{x}$, when covariate data is missing for individuals in the case cohort. Also provides parameters estimates.
 
 * **influences.RH.missingdata** - estimation of influences on log-relative hazard.
 
-* **influences.CumBH.missingdata** - estimation of influences on log-relative hazard, baseline hazards at each unique event time, and cumulative baseline hazard in a given time interval [$\tau_1$, $\tau_2$].
+* **influences.CumBH.missingdata** - estimation of influences on log-relative hazard, baseline hazards at each unique event time, and cumulative baseline hazard in a given time interval $\[\tau_1,\tau_2\]$.
 
-* **influences.PR.missingdata** - estimation of influences on the on pure risk in a given time interval [$\tau_1$, $\tau_2$] and for a given covariate profile $\bm{x}$, from that of the log-relative hazard and cumulative baseline hazard [$\tau_1$, $\tau_2$], when covariate data is missing for individuals in the case cohort. 
+* **influences.PR.missingdata** - estimation of influences on the on pure risk in a given time interval $\[\tau_1,\tau_2\]$ and for a given covariate profile $\boldsymbol{x}$, from that of the log-relative hazard and cumulative baseline hazard $\[\tau_1,\tau_2\]$, when covariate data is missing for individuals in the case cohort. 
 
 * **robustvariance** - estimation of the robust variance estimate, for parameters such as log-relative hazard, cumulative baseline hazard or covariate specific pure-risk. Works with design weights or calibrated weights, or when covariate data is missing for individuals in the case cohort.
 
@@ -71,7 +72,7 @@ Each script relies on functions provided in `help.functions.R`.
 
 * **densityX1X3** and **densityX1** - used for the computation of the time-fixed baseline hazard in the simulations in Section 5 and Web Appendix E.
 
-* **E.RH** and **E.RH.w** - computation of E{exp($\beta_1 X_1 + \beta_2 X_2 + \beta_3 X_3$)} and E{exp($\beta_1 X_1 + \beta_2 X_2 + \beta_3 X_3)$ $| \bm{W} = \bm{w}$}, for $\bm{w}$ = {0, 1, 2, 3},  needed to compute the time-fixed baseline hazard and the sampling fractions to be used for an un-stratified and stratified sampling of the case-cohort in the simulations in Section 5 and Web Appendix E.
+* **E.RH** and **E.RH.w** - computation of $\text{E} \lbrace \text{exp}\(\beta_1 X_1 + \beta_2 X_2 + \beta_3 X_3 \)\rbrace$ and $\text{E} \lbrace\text{exp}\(\beta_1 X_1 + \beta_2 X_2 + \beta_3 X_3 | \boldsymbol{W} = \boldsymbol{w} \)\rbrace$ , for $\boldsymbol{w}$ = {0, 1, 2, 3},  needed to compute the time-fixed baseline hazard and the sampling fractions to be used for an un-stratified and stratified sampling of the case-cohort in the simulations in Section 5 and Web Appendix E.
 
 * **scenarios** - creation of a dataframe with the different scenarios to be investigated in the simulations in Section 5 and Web Appendix E.
 
