@@ -3206,3 +3206,869 @@ variance.missingdata <- function (n, casecohort, casecohort.phase2,
   return(variance = var)
 }
 
+
+## -----------------------------------------------------------------------------
+## Function: detailed.results()
+## -----------------------------------------------------------------------------
+## Description:   This function analyzes the results of the simulations and save
+##                the details in .csv and .Rdata files. The saved tables contain
+##                the same information as that displayed in Section 5 in the 
+##                main document and in Web Appendix E in Etievant and Gail 
+##                (2022)
+## -----------------------------------------------------------------------------
+## Arguments:
+##
+## RECAP              data frame with the simulation results, for all the 
+##                    scenarios in argument param and methods in argument
+##                    list.methods
+##
+## param              data frame with the different scenarios investigated in  
+##                    the simulation
+##
+## Nreplic            number of replications investigated in the simulation
+##
+## list.methods       vector containing the names of the methods investigated in 
+##                    the simulation
+##
+## list.methods.col   vector with shorter names for the investigated methods. By
+##                    default the names in list.methods are used.
+##
+## simul.name         string indicating the analyzed simulations (e.g. 
+##                    "PoststratifiedWeights"). Default is NULL for the that
+##                    of Section 5 and Web Appendix E.2
+## -----------------------------------------------------------------------------
+
+detailed.results <- function (RECAP, param, Nreplic, list.methods,
+                              list.methods.col = NULL, simul.name = NULL) {
+  
+  if (is.null(list.methods.col)) {
+    list.methods.col = list.methods
+  }
+  
+  n.method = length(list.methods) # nrow(REPAP) should equal Nreplic * n.method
+  
+  details.beta1   <- NULL
+  details.beta2   <- NULL
+  details.beta3   <- NULL
+  details.Lambda0 <- NULL
+  details.Pi.x1   <- NULL
+  details.Pi.x2   <- NULL
+  details.Pi.x3   <- NULL
+  relative.efficiency <- NULL
+  for (i in 1:nrow(param)) {
+    
+    RECAP1 <- RECAP[((i-1) * (n.method * Nreplic) + 1):(i * (n.method * Nreplic)), ]
+    
+    beta1   <- RECAP1[1,]$beta1
+    beta2   <- RECAP1[1,]$beta2
+    beta3   <- RECAP1[1,]$beta3
+    Lambda0 <- RECAP1[1,]$Lambda0.Tau1Tau2
+    Pi.x1   <- RECAP1[1,]$Pi.x1.Tau1Tau2
+    Pi.x2   <- RECAP1[1,]$Pi.x2.Tau1Tau2
+    Pi.x3   <- RECAP1[1,]$Pi.x3.Tau1Tau2
+    
+    nameColResults <- function (name) {
+      a <- NULL
+      for (j in 1:length(list.methods)) {
+        a <- c(a, paste0(name, ".", list.methods.col[j]))
+      }
+      return(a)
+    }
+    
+    # Coverage of the confidence intervals 
+    coverage.beta1 <- NULL
+    coverage.beta2 <- NULL
+    coverage.beta3 <- NULL
+    coverage.Lambda0 <- NULL
+    coverage.Pi.x1 <- NULL
+    coverage.Pi.x2 <- NULL
+    coverage.Pi.x3 <- NULL
+    for (j in 1:length(list.methods)) {
+      method <- list.methods[j]
+      coverage.beta1 <- cbind(coverage.beta1,
+                              mean((RECAP1$CI.left.beta1.hat[which(RECAP1$Method == method)] < beta1) & 
+                                     (RECAP1$CI.right.beta1.hat[which(RECAP1$Method == method)] > beta1)) )
+      coverage.beta2 <- cbind(coverage.beta2,
+                              mean((RECAP1$CI.left.beta2.hat[which(RECAP1$Method == method)] < beta2) &
+                                     (RECAP1$CI.right.beta2.hat[which(RECAP1$Method == method)] > beta2)) )
+      coverage.beta3 <- cbind(coverage.beta3,
+                              mean((RECAP1$CI.left.beta3.hat[which(RECAP1$Method == method)] < beta3) &
+                                     (RECAP1$CI.right.beta3.hat[which(RECAP1$Method == method)] > beta3)) )
+      coverage.Lambda0 <- cbind(coverage.Lambda0, mean((RECAP1$CI.left.Lambda0.Tau1Tau2.hat[which(RECAP1$Method == method)] < Lambda0) & (RECAP1$CI.right.Lambda0.Tau1Tau2.hat[which(RECAP1$Method == method)] > Lambda0)) )
+      coverage.Pi.x1 <- cbind(coverage.Pi.x1,
+                              mean((RECAP1$CI.left.Pi.x1.Tau1Tau2.hat[which(RECAP1$Method == method)] < Pi.x1) &
+                                     (RECAP1$CI.right.Pi.x1.Tau1Tau2.hat[which(RECAP1$Method == method)] > Pi.x1)) )
+      coverage.Pi.x2 <- cbind(coverage.Pi.x2,
+                              mean((RECAP1$CI.left.Pi.x2.Tau1Tau2.hat[which(RECAP1$Method == method)] < Pi.x2) &
+                                     (RECAP1$CI.right.Pi.x2.Tau1Tau2.hat[which(RECAP1$Method == method)] > Pi.x2)) )
+      coverage.Pi.x3 <- cbind(coverage.Pi.x3,
+                              mean((RECAP1$CI.left.Pi.x3.Tau1Tau2.hat[which(RECAP1$Method == method)] < Pi.x3) &
+                                     (RECAP1$CI.right.Pi.x3.Tau1Tau2.hat[which(RECAP1$Method == method)] > Pi.x3)) )
+    }
+    coverage.beta1 <- as.data.frame(coverage.beta1)
+    colnames(coverage.beta1) <- nameColResults("coverage.beta1")
+    coverage.beta2 <- as.data.frame(coverage.beta2)
+    colnames(coverage.beta2) <- nameColResults("coverage.beta2")
+    coverage.beta3 <- as.data.frame(coverage.beta3)
+    colnames(coverage.beta3) <- nameColResults("coverage.beta3")
+    coverage.Lambda0 <- as.data.frame(coverage.Lambda0)
+    colnames(coverage.Lambda0) <- nameColResults("coverage.Lambda0")
+    coverage.Pi.x1 <- as.data.frame(coverage.Pi.x1)
+    colnames(coverage.Pi.x1) <- nameColResults("coverage.Pi.x1")
+    coverage.Pi.x2 <- as.data.frame(coverage.Pi.x2)
+    colnames(coverage.Pi.x2) <- nameColResults("coverage.Pi.x2")
+    coverage.Pi.x3 <- as.data.frame(coverage.Pi.x3)
+    colnames(coverage.Pi.x3) <- nameColResults("coverage.Pi.x3")
+    
+    # Empirical variance
+    empir.var.beta1 <- NULL
+    empir.var.beta2 <- NULL
+    empir.var.beta3 <- NULL
+    empir.var.Lambda0 <- NULL
+    empir.var.Pi.x1 <- NULL
+    empir.var.Pi.x2 <- NULL
+    empir.var.Pi.x3 <- NULL
+    for (j in 1:length(list.methods)) {
+      method <- list.methods[j]
+      empir.var.beta1 <- cbind(empir.var.beta1, 
+                               var(RECAP1$beta1.hat[which(RECAP1$Method == method)]))
+      empir.var.beta2 <- cbind(empir.var.beta2, 
+                               var(RECAP1$beta2.hat[which(RECAP1$Method == method)]))
+      empir.var.beta3 <- cbind(empir.var.beta3, 
+                               var(RECAP1$beta3.hat[which(RECAP1$Method == method)]))
+      empir.var.Lambda0 <- cbind(empir.var.Lambda0, 
+                                 var(RECAP1$Lambda0.Tau1Tau2.hat[which(RECAP1$Method == method)]))
+      empir.var.Pi.x1 <- cbind(empir.var.Pi.x1, 
+                               var(RECAP1$Pi.x1.Tau1Tau2.hat[which(RECAP1$Method == method)]))
+      empir.var.Pi.x2 <- cbind(empir.var.Pi.x2, 
+                               var(RECAP1$Pi.x2.Tau1Tau2.hat[which(RECAP1$Method == method)]))
+      empir.var.Pi.x3 <- cbind(empir.var.Pi.x3, 
+                               var(RECAP1$Pi.x3.Tau1Tau2.hat[which(RECAP1$Method == method)]))
+    }
+    empir.var.beta1 <- as.data.frame(empir.var.beta1)
+    colnames(empir.var.beta1) <- nameColResults("empir.var.beta1")
+    empir.var.beta2 <- as.data.frame(empir.var.beta2)
+    colnames(empir.var.beta2) <- nameColResults("empir.var.beta2")
+    empir.var.beta3 <- as.data.frame(empir.var.beta3)
+    colnames(empir.var.beta3) <- nameColResults("empir.var.beta3")
+    empir.var.Lambda0 <- as.data.frame(empir.var.Lambda0)
+    colnames(empir.var.Lambda0) <- nameColResults("empir.var.Lambda0")
+    empir.var.Pi.x1 <- as.data.frame(empir.var.Pi.x1)
+    colnames(empir.var.Pi.x1) <- nameColResults("empir.var.Pi.x1")
+    empir.var.Pi.x2 <- as.data.frame(empir.var.Pi.x2)
+    colnames(empir.var.Pi.x2) <- nameColResults("empir.var.Pi.x2")
+    empir.var.Pi.x3 <- as.data.frame(empir.var.Pi.x3)
+    colnames(empir.var.Pi.x3) <- nameColResults("empir.var.Pi.x3")
+    
+    # Mean variance
+    var.beta1 <- NULL
+    var.beta2 <- NULL
+    var.beta3 <- NULL
+    var.Lambda0 <- NULL
+    var.Pi.x1 <- NULL
+    var.Pi.x2 <- NULL
+    var.Pi.x3 <- NULL
+    for (j in 1:length(list.methods)) {
+      method <- list.methods[j]
+      var.beta1 <- cbind(var.beta1, mean((RECAP1$var.beta1.hat[which(RECAP1$Method == method)])))
+      var.beta2 <- cbind(var.beta2, mean((RECAP1$var.beta2.hat[which(RECAP1$Method == method)])))
+      var.beta3 <- cbind(var.beta3, mean((RECAP1$var.beta3.hat[which(RECAP1$Method == method)])))
+      var.Lambda0 <- cbind(var.Lambda0, mean((RECAP1$var.Lambda0.Tau1Tau2.hat[which(RECAP1$Method == method)])))
+      var.Pi.x1 <- cbind(var.Pi.x1, mean((RECAP1$var.Pi.x1.Tau1Tau2.hat[which(RECAP1$Method == method)])))
+      var.Pi.x2 <- cbind(var.Pi.x2, mean((RECAP1$var.Pi.x2.Tau1Tau2.hat[which(RECAP1$Method == method)])))
+      var.Pi.x3 <- cbind(var.Pi.x3, mean((RECAP1$var.Pi.x2.Tau1Tau2.hat[which(RECAP1$Method == method)])))
+    }
+    var.beta1 <- as.data.frame(var.beta1)
+    colnames(var.beta1) <- nameColResults("var.beta1")
+    var.beta2 <- as.data.frame(var.beta2)
+    colnames(var.beta2) <- nameColResults("var.beta2")
+    var.beta3 <- as.data.frame(var.beta3)
+    colnames(var.beta3) <- nameColResults("var.beta3")
+    var.Lambda0 <- as.data.frame(var.Lambda0)
+    colnames(var.Lambda0) <- nameColResults("var.Lambda0")
+    var.Pi.x1 <- as.data.frame(var.Pi.x1)
+    colnames(var.Pi.x1) <- nameColResults("var.Pi.x1")
+    var.Pi.x2 <- as.data.frame(var.Pi.x2)
+    colnames(var.Pi.x2) <- nameColResults("var.Pi.x2")
+    var.Pi.x3 <- as.data.frame(var.Pi.x3)
+    colnames(var.Pi.x3) <- nameColResults("var.Pi.x3")
+    
+    coxph.var.beta1 <- NULL
+    coxph.var.beta2 <- NULL
+    coxph.var.beta3 <- NULL
+    for (j in 1:length(list.methods)) {
+      method <- list.methods[j]
+      coxph.var.beta1 <- cbind(coxph.var.beta1, mean((RECAP1$coxph.var.beta1.hat[which(RECAP1$Method == method)])))
+      coxph.var.beta2 <- cbind(coxph.var.beta2, mean((RECAP1$coxph.var.beta2.hat[which(RECAP1$Method == method)])))
+      coxph.var.beta3 <- cbind(coxph.var.beta3, mean((RECAP1$coxph.var.beta3.hat[which(RECAP1$Method == method)])))
+    }
+    coxph.var.beta1 <- as.data.frame(coxph.var.beta1)
+    colnames(coxph.var.beta1) <- nameColResults("coxph.var.beta1")
+    coxph.var.beta2 <- as.data.frame(coxph.var.beta2)
+    colnames(coxph.var.beta2) <- nameColResults("coxph.var.beta2")
+    coxph.var.beta3 <- as.data.frame(coxph.var.beta3)
+    colnames(coxph.var.beta3) <- nameColResults("coxph.var.beta3")
+    
+    # Bias/mean estimate
+    mean.beta1 <- NULL
+    mean.beta2 <- NULL
+    mean.beta3 <- NULL
+    mean.Lambda0 <- NULL
+    mean.Pi.x1 <- NULL
+    mean.Pi.x2 <- NULL
+    mean.Pi.x3 <- NULL
+    for (j in 1:length(list.methods)) {
+      method <- list.methods[j]
+      mean.beta1 <- cbind(mean.beta1, mean((RECAP1$beta1.hat[which(RECAP1$Method == method)])))
+      mean.beta2 <- cbind(mean.beta2, mean((RECAP1$beta2.hat[which(RECAP1$Method == method)])))
+      mean.beta3 <- cbind(mean.beta3, mean((RECAP1$beta3.hat[which(RECAP1$Method == method)])))
+      mean.Lambda0 <- cbind(mean.Lambda0, mean((RECAP1$Lambda0.Tau1Tau2.hat[which(RECAP1$Method == method)])))
+      mean.Pi.x1 <- cbind(mean.Pi.x1, mean((RECAP1$Pi.x1.Tau1Tau2.hat[which(RECAP1$Method == method)])))
+      mean.Pi.x2 <- cbind(mean.Pi.x2, mean((RECAP1$Pi.x2.Tau1Tau2.hat[which(RECAP1$Method == method)])))
+      mean.Pi.x3 <- cbind(mean.Pi.x3, mean((RECAP1$Pi.x3.Tau1Tau2.hat[which(RECAP1$Method == method)])))
+    }
+    mean.beta1 <- as.data.frame(mean.beta1)
+    colnames(mean.beta1) <- nameColResults("mean.beta1")
+    mean.beta2 <- as.data.frame(mean.beta2)
+    colnames(mean.beta2) <- nameColResults("mean.beta2")
+    mean.beta3 <- as.data.frame(mean.beta3)
+    colnames(mean.beta3) <- nameColResults("mean.beta3")
+    mean.Lambda0 <- as.data.frame(mean.Lambda0)
+    colnames(mean.Lambda0) <- nameColResults("mean.Lambda0")
+    mean.Pi.x1 <- as.data.frame(mean.Pi.x1)
+    colnames(mean.Pi.x1) <- nameColResults("mean.Pi.x1")
+    mean.Pi.x2 <- as.data.frame(mean.Pi.x2)
+    colnames(mean.Pi.x2) <- nameColResults("mean.Pi.x2")
+    mean.Pi.x3 <- as.data.frame(mean.Pi.x3)
+    colnames(mean.Pi.x3) <- nameColResults("mean.Pi.x3")
+    
+    bias.beta1 <- mean.beta1 - beta1
+    colnames(bias.beta1) <- nameColResults("bias.beta1")
+    bias.beta2 <- mean.beta2 - beta2
+    colnames(bias.beta2) <- nameColResults("bias.beta2")
+    bias.beta3 <- mean.beta3 - beta3
+    colnames(bias.beta3) <- nameColResults("bias.beta3")
+    bias.Lambda0 <- mean.Lambda0 - Lambda0
+    colnames(bias.Lambda0) <- nameColResults("bias.Lambda0")
+    bias.Pi.x1 <- mean.Pi.x1 - Pi.x1
+    colnames(bias.Pi.x1) <- nameColResults("bias.Pi.x1")
+    bias.Pi.x2 <- mean.Pi.x2 - Pi.x2
+    colnames(bias.Pi.x2) <- nameColResults("bias.Pi.x2")
+    bias.Pi.x3 <- mean.Pi.x3 - Pi.x3
+    colnames(bias.Pi.x3) <- nameColResults("bias.Pi.x3")
+    
+    # relative efficiency
+    eff.beta1 <- NULL
+    eff.beta2 <- NULL
+    eff.beta3 <- NULL
+    eff.Lambda0 <- NULL
+    eff.Pi.x1 <- NULL
+    eff.Pi.x2 <- NULL
+    eff.Pi.x3 <- NULL
+    for (j in 1:length(list.methods)) {
+      method <- list.methods[j]
+      eff.beta1 <- cbind(eff.beta1, as.numeric(empir.var.beta1[1] / 
+                                                 empir.var.beta1[j]))
+      eff.beta2 <- cbind(eff.beta2, as.numeric(empir.var.beta2[1] / 
+                                                 empir.var.beta2[j]))
+      eff.beta3 <- cbind(eff.beta3, as.numeric(empir.var.beta3[1] / 
+                                                 empir.var.beta3[j]))
+      eff.Lambda0 <- cbind(eff.Lambda0, as.numeric(empir.var.Lambda0[1] / 
+                                                     empir.var.Lambda0[j]))
+      eff.Pi.x1 <- cbind(eff.Pi.x1, as.numeric(empir.var.Pi.x1[1] / 
+                                                 empir.var.Pi.x1[j]))
+      eff.Pi.x2 <- cbind(eff.Pi.x2, as.numeric(empir.var.Pi.x2[1] / 
+                                                 empir.var.Pi.x2[j]))
+      eff.Pi.x3 <- cbind(eff.Pi.x3, as.numeric(empir.var.Pi.x3[1] / 
+                                                 empir.var.Pi.x3[j]))
+    }
+    eff.beta1 <- as.data.frame(eff.beta1)
+    colnames(eff.beta1) <- nameColResults("eff.beta1")
+    eff.beta2 <- as.data.frame(eff.beta2)
+    colnames(eff.beta2) <- nameColResults("eff.beta2")
+    eff.beta3 <- as.data.frame(eff.beta3)
+    colnames(eff.beta3) <- nameColResults("eff.beta3")
+    eff.Lambda0 <- as.data.frame(eff.Lambda0)
+    colnames(eff.Lambda0) <- nameColResults("eff.Lambda0")
+    eff.Pi.x1 <- as.data.frame(eff.Pi.x1)
+    colnames(eff.Pi.x1) <- nameColResults("eff.Pi.x1")
+    eff.Pi.x2 <- as.data.frame(eff.Pi.x2)
+    colnames(eff.Pi.x2) <- nameColResults("eff.Pi.x2")
+    eff.Pi.x3 <- as.data.frame(eff.Pi.x3)
+    colnames(eff.Pi.x3) <- nameColResults("eff.Pi.x3")
+    
+    details.beta1 <- rbind(details.beta1, c(bias.beta1, empir.var.beta1, 
+                                            var.beta1, coxph.var.beta1, 
+                                            coverage.beta1, eff.beta1, 
+                                            beta1 = beta1, beta2 = beta2,  
+                                            beta3 = beta3, Lambda0 = Lambda0, 
+                                            Pi.x1 = Pi.x1, Pi.x2 = Pi.x2,
+                                            Pi.x3 = Pi.x3,
+                                            n = as.character(RECAP1[1,]$n), 
+                                            K = as.character(RECAP1[1,]$K), 
+                                            sampl.fracW0 = as.character(RECAP1[1,]$sampl.fracW0),
+                                            sampl.fracW1 = as.character(RECAP1[1,]$sampl.fracW1),
+                                            sampl.fracW2 = as.character(RECAP1[1,]$sampl.fracW2),
+                                            sampl.fracW3 = as.character(RECAP1[1,]$sampl.fracW3), 
+                                            Prob.y = as.character(RECAP1[1,]$Prob.y), 
+                                            m = as.character(RECAP1[1,]$m)))
+    
+    details.beta2 <- rbind(details.beta2, c(bias.beta2, empir.var.beta2, 
+                                            var.beta2, coxph.var.beta2, 
+                                            coverage.beta2, eff.beta2,
+                                            beta1 = beta1, beta2 = beta2,  
+                                            beta3 = beta3, Lambda0 = Lambda0, 
+                                            Pi.x1 = Pi.x1, Pi.x2 = Pi.x2,
+                                            Pi.x3 = Pi.x3,
+                                            n = as.character(RECAP1[1,]$n), 
+                                            K = as.character(RECAP1[1,]$K), 
+                                            sampl.fracW0 = as.character(RECAP1[1,]$sampl.fracW0), 
+                                            sampl.fracW1 = as.character(RECAP1[1,]$sampl.fracW1), 
+                                            sampl.fracW2 = as.character(RECAP1[1,]$sampl.fracW2), 
+                                            sampl.fracW3 = as.character(RECAP1[1,]$sampl.fracW3), 
+                                            Prob.y = as.character(RECAP1[1,]$Prob.y), 
+                                            m = as.character(RECAP1[1,]$m)))
+    
+    details.beta3 <- rbind(details.beta3, c(bias.beta3, empir.var.beta3, 
+                                            var.beta3, coxph.var.beta3, 
+                                            coverage.beta3, eff.beta3,
+                                            beta1 = beta1, beta2 = beta2,  
+                                            beta3 = beta3, Lambda0 = Lambda0, 
+                                            Pi.x1 = Pi.x1, Pi.x2 = Pi.x2,
+                                            Pi.x3 = Pi.x3,
+                                            n = as.character(RECAP1[1,]$n), 
+                                            K = as.character(RECAP1[1,]$K), 
+                                            sampl.fracW0 = as.character(RECAP1[1,]$sampl.fracW0), 
+                                            sampl.fracW1 = as.character(RECAP1[1,]$sampl.fracW1), 
+                                            sampl.fracW2 = as.character(RECAP1[1,]$sampl.fracW2), 
+                                            sampl.fracW3 = as.character(RECAP1[1,]$sampl.fracW3), 
+                                            Prob.y = as.character(RECAP1[1,]$Prob.y), 
+                                            m = as.character(RECAP1[1,]$m)))
+    
+    details.Lambda0 <- rbind(details.Lambda0, c(bias.Lambda0, empir.var.Lambda0, 
+                                                var.Lambda0, 
+                                                coverage.Lambda0, eff.Lambda0,
+                                                beta1 = beta1, beta2 = beta2,  
+                                                beta3 = beta3, Lambda0 = Lambda0, 
+                                                Pi.x1 = Pi.x1, Pi.x2 = Pi.x2,
+                                                Pi.x3 = Pi.x3,
+                                                n = as.character(RECAP1[1,]$n), 
+                                                K = as.character(RECAP1[1,]$K), 
+                                                sampl.fracW0 = as.character(RECAP1[1,]$sampl.fracW0), 
+                                                sampl.fracW1 = as.character(RECAP1[1,]$sampl.fracW1), 
+                                                sampl.fracW2 = as.character(RECAP1[1,]$sampl.fracW2), 
+                                                sampl.fracW3 = as.character(RECAP1[1,]$sampl.fracW3), 
+                                                Prob.y = as.character(RECAP1[1,]$Prob.y), 
+                                                m = as.character(RECAP1[1,]$m)))
+    
+    details.Pi.x1 <- rbind(details.Pi.x1, c(bias.Pi.x1, empir.var.Pi.x1, 
+                                            var.Pi.x1, coverage.Pi.x1, eff.Pi.x1,
+                                            beta1 = beta1, beta2 = beta2,  
+                                            beta3 = beta3,
+                                            Lambda0 = Lambda0, Pi.x1 = Pi.x1, 
+                                            Pi.x2 = Pi.x2, Pi.x3 = Pi.x3,  
+                                            n = as.character(RECAP1[1,]$n), 
+                                            K = as.character(RECAP1[1,]$K), 
+                                            sampl.fracW0 = as.character(RECAP1[1,]$sampl.fracW0), 
+                                            sampl.fracW1 = as.character(RECAP1[1,]$sampl.fracW1), 
+                                            sampl.fracW2 = as.character(RECAP1[1,]$sampl.fracW2), 
+                                            sampl.fracW3 = as.character(RECAP1[1,]$sampl.fracW3), 
+                                            Prob.y = as.character(RECAP1[1,]$Prob.y), 
+                                            m = as.character(RECAP1[1,]$m)))
+    
+    details.Pi.x2 <- rbind(details.Pi.x2, c(bias.Pi.x2, empir.var.Pi.x2, 
+                                            var.Pi.x2,  coverage.Pi.x2, eff.Pi.x2,
+                                            beta1 = beta1, beta2 = beta2,  
+                                            beta3 = beta3, Lambda0 = Lambda0, 
+                                            Pi.x1 = Pi.x1, Pi.x2 = Pi.x2,
+                                            Pi.x3 = Pi.x3,  
+                                            n = as.character(RECAP1[1,]$n), 
+                                            K = as.character(RECAP1[1,]$K), 
+                                            sampl.fracW0 = as.numeric(as.character(RECAP1[1,]$sampl.fracW0)), 
+                                            sampl.fracW1 = as.character(RECAP1[1,]$sampl.fracW1), 
+                                            sampl.fracW2 = as.character(RECAP1[1,]$sampl.fracW2), 
+                                            sampl.fracW3 = as.character(RECAP1[1,]$sampl.fracW3), 
+                                            Prob.y = as.character(RECAP1[1,]$Prob.y), 
+                                            m = as.character(RECAP1[1,]$m)))
+    
+    details.Pi.x3 <- rbind(details.Pi.x3, c(bias.Pi.x3, empir.var.Pi.x3, 
+                                            var.Pi.x3, coverage.Pi.x3, eff.Pi.x3,
+                                            beta1 = beta1, beta2 = beta2, 
+                                            beta3 = beta3, Lambda0 = Lambda0, 
+                                            Pi.x1 = Pi.x1, Pi.x2 = Pi.x2,
+                                            Pi.x3 = Pi.x3,  
+                                            n = as.character(RECAP1[1,]$n), 
+                                            K = as.character(RECAP1[1,]$K), 
+                                            sampl.fracW0 = as.numeric(as.character(RECAP1[1,]$sampl.fracW0)), 
+                                            sampl.fracW1 = as.character(RECAP1[1,]$sampl.fracW1), 
+                                            sampl.fracW2 = as.character(RECAP1[1,]$sampl.fracW2), 
+                                            sampl.fracW3 = as.character(RECAP1[1,]$sampl.fracW3), 
+                                            Prob.y = as.character(RECAP1[1,]$Prob.y), 
+                                            m = as.character(RECAP1[1,]$m)))
+    
+    relative.efficiency <- rbind(relative.efficiency, c(eff.beta1, eff.beta2, 
+                                                        eff.beta3, eff.Lambda0, 
+                                                        eff.Pi.x1, eff.Pi.x2,
+                                                        eff.Pi.x3, beta1 = beta1, 
+                                                        beta2 = beta2,
+                                                        beta3 = beta3, 
+                                                        Lambda0 = Lambda0, 
+                                                        Pi.x1 = Pi.x1, 
+                                                        Pi.x2 = Pi.x2,
+                                                        Pi.x3 = Pi.x3,
+                                                        n = as.character(RECAP1[1,]$n), 
+                                                        K = as.character(RECAP1[1,]$K), 
+                                                        sampl.fracW0 = as.numeric(as.character(RECAP1[1,]$sampl.fracW0)), 
+                                                        sampl.fracW1 = as.character(RECAP1[1,]$sampl.fracW1), 
+                                                        sampl.fracW2 = as.character(RECAP1[1,]$sampl.fracW2), 
+                                                        sampl.fracW3 = as.character(RECAP1[1,]$sampl.fracW3), 
+                                                        Prob.y = as.character(RECAP1[1,]$Prob.y), 
+                                                        m = as.character(RECAP1[1,]$m)))
+  }
+  details.beta1 <- as.data.frame(details.beta1)
+  details.beta2 <- as.data.frame(details.beta2)
+  details.beta3 <- as.data.frame(details.beta3)
+  details.Lambda0 <- as.data.frame(details.Lambda0)
+  details.Pi.x1 <- as.data.frame(details.Pi.x1)
+  details.Pi.x2 <- as.data.frame(details.Pi.x2)
+  details.Pi.x3 <- as.data.frame(details.Pi.x3)
+  relative.efficiency <- as.data.frame(relative.efficiency)
+  
+  col.names.beta1 <- colnames(details.beta1[,c(1:65)])
+  details.beta1[col.names.beta1] <- sapply(details.beta1[col.names.beta1], 
+                                           as.numeric)
+  details.beta1[col.names.beta1] <- round(details.beta1[col.names.beta1], 
+                                          digits = 4)
+  save(details.beta1, file = paste0("details.beta1", simul.name, ".Rdata"))
+  write.csv(details.beta1, file = paste0("details.beta1", simul.name, ".csv"))
+  
+  col.names.beta2 <- colnames(details.beta2[,c(1:65)])
+  details.beta2[col.names.beta2] <- sapply(details.beta2[col.names.beta2], 
+                                           as.numeric)
+  details.beta2[col.names.beta2] <- round(details.beta2[col.names.beta2], 
+                                          digits = 4)
+  save(details.beta2, file = paste0("details.beta2", simul.name, ".Rdata"))
+  write.csv(details.beta2, file = paste0("details.beta2", simul.name, ".csv"))
+  
+  col.names.beta3 <- colnames(details.beta3[,c(1:65)])
+  details.beta3[col.names.beta3] <- sapply(details.beta3[col.names.beta3], 
+                                           as.numeric)
+  details.beta3[col.names.beta3] <- round(details.beta3[col.names.beta3], 
+                                          digits = 4)
+  save(details.beta3, file = paste0("details.beta3", simul.name, ".Rdata"))
+  write.csv(details.beta3, file = paste0("details.beta3", simul.name, ".csv"))
+  
+  col.names.Lambda0 <- colnames(details.Lambda0[,c(1:56)])
+  details.Lambda0[col.names.Lambda0] <- sapply(details.Lambda0[col.names.Lambda0], 
+                                               as.numeric)
+  save(details.Lambda0, file = paste0("details.Lambda0", simul.name, ".Rdata"))
+  write.csv(details.Lambda0, file = paste0("details.Lambda0", simul.name, 
+                                           ".csv"))
+  
+  col.names.Pi.x1 <- colnames(details.Pi.x1[,c(1:56)])
+  details.Pi.x1[col.names.Pi.x1] <- sapply(details.Pi.x1[col.names.Pi.x1], 
+                                           as.numeric)
+  save(details.Pi.x1, file = paste0("details.Pi.x1", simul.name, ".Rdata"))
+  write.csv(details.Pi.x1, file = paste0("details.Pi.x1", simul.name, ".csv"))
+  
+  col.names.Pi.x2 <- colnames(details.Pi.x2[,c(1:56)])
+  details.Pi.x2[col.names.Pi.x2] <- sapply(details.Pi.x2[col.names.Pi.x2], 
+                                           as.numeric)
+  save(details.Pi.x2, file = paste0("details.Pi.x2", simul.name, ".Rdata"))
+  write.csv(details.Pi.x2, file = paste0("details.Pi.x2", simul.name, ".csv"))
+  
+  col.names.Pi.x3 <- colnames(details.Pi.x3[,c(1:56)])
+  details.Pi.x3[col.names.Pi.x3] <- sapply(details.Pi.x3[col.names.Pi.x3], 
+                                           as.numeric)
+  save(details.Pi.x3, file = paste0("details.Pi.x3", simul.name, ".Rdata"))
+  write.csv(details.Pi.x3, file = paste0("details.Pi.x3", simul.name, ".csv"))
+  
+  col.names.Eff <- colnames(relative.efficiency[,c(1:74)])
+  relative.efficiency[col.names.Eff] <- sapply(relative.efficiency[col.names.Eff], 
+                                               as.numeric)
+  relative.efficiency[col.names.Eff] <- round(relative.efficiency[col.names.Eff], 
+                                              digits = 3)
+  save(relative.efficiency, file = paste0("relative.efficiency", simul.name,
+                                          ".Rdata"))
+  write.csv(relative.efficiency, file = paste0("relative.efficiency", 
+                                               simul.name, ".csv"))
+  
+  # ----------------------------------------------------------------------------
+  # Details of the results after log-transformation of the cumulative baseline 
+  # hazard and covariate specific pure risks estimates -------------------------
+  
+  details.transformedLambda0 <- NULL
+  details.transformedPi.x1 <- NULL
+  details.transformedPi.x2 <- NULL
+  details.transformedPi.x3 <- NULL
+  for (i in 1:nrow(param)) {
+    
+    RECAP1 <- RECAP[((i-1) * (n.method * Nreplic) + 1):(i * (n.method * Nreplic)),]
+    
+    beta1   <- RECAP1[1,]$beta1
+    beta2   <- RECAP1[1,]$beta2
+    beta3   <- RECAP1[1,]$beta3
+    Lambda0 <- RECAP1[1,]$Lambda0.Tau1Tau2
+    Pi.x1   <- RECAP1[1,]$Pi.x1.Tau1Tau2
+    Pi.x2   <- RECAP1[1,]$Pi.x2.Tau1Tau2
+    Pi.x3   <- RECAP1[1,]$Pi.x3.Tau1Tau2
+    
+    logLambda0 <- log(Lambda0)
+    RECAP1$logLambda0.Tau1Tau2.hat <- log(RECAP1$Lambda0.Tau1Tau2.hat)
+    logPi.x1 <- log(Pi.x1)
+    RECAP1$logPi.x1.Tau1Tau2.hat <- log(RECAP1$Pi.x1.Tau1Tau2.hat)
+    logPi.x2 <- log(Pi.x2)
+    RECAP1$logPi.x2.Tau1Tau2.hat <- log(RECAP1$Pi.x2.Tau1Tau2.hat)
+    logPi.x3 <- log(Pi.x3)
+    RECAP1$logPi.x3.Tau1Tau2.hat <- log(RECAP1$Pi.x3.Tau1Tau2.hat)
+    
+    nameColResults <- function (name) {
+      a <- NULL
+      for (j in 1:length(list.methods)) {
+        a <- c(a, paste0(name, ".", list.methods.col[j]))
+      }
+      return(a)
+    }
+    
+    # Empirical variance
+    empir.var.Lambda0 <- NULL
+    empir.var.Pi.x1 <- NULL
+    empir.var.Pi.x2 <- NULL
+    empir.var.Pi.x3 <- NULL
+    for (j in 1:length(list.methods)) {
+      method <- list.methods[j]
+      empir.var.Lambda0 <- cbind(empir.var.Lambda0, var(RECAP1$Lambda0.Tau1Tau2.hat[which(RECAP1$Method == method)]))
+      empir.var.Pi.x1 <- cbind(empir.var.Pi.x1, var(RECAP1$Pi.x1.Tau1Tau2.hat[which(RECAP1$Method == method)]))
+      empir.var.Pi.x2 <- cbind(empir.var.Pi.x2, var(RECAP1$Pi.x2.Tau1Tau2.hat[which(RECAP1$Method == method)]))
+      empir.var.Pi.x3 <- cbind(empir.var.Pi.x3, var(RECAP1$Pi.x3.Tau1Tau2.hat[which(RECAP1$Method == method)]))
+    }
+    empir.var.Lambda0 <- as.data.frame(empir.var.Lambda0)
+    colnames(empir.var.Lambda0) <- nameColResults("empir.var.Lambda0")
+    empir.var.Pi.x1 <- as.data.frame(empir.var.Pi.x1)
+    colnames(empir.var.Pi.x1) <- nameColResults("empir.var.Pi.x1")
+    empir.var.Pi.x2 <- as.data.frame(empir.var.Pi.x2)
+    colnames(empir.var.Pi.x2) <- nameColResults("empir.var.Pi.x2")
+    empir.var.Pi.x3 <- as.data.frame(empir.var.Pi.x3)
+    colnames(empir.var.Pi.x3) <- nameColResults("empir.var.Pi.x3")
+    
+    ## Empirical variance for the transformed estimates
+    empir.var.logLambda0 <- NULL
+    empir.var.logPi.x1 <- NULL
+    empir.var.logPi.x2 <- NULL
+    empir.var.logPi.x3 <- NULL
+    for (j in 1:length(list.methods)) {
+      method <- list.methods[j]
+      empir.var.logLambda0 <- cbind(empir.var.logLambda0, var(RECAP1$logLambda0.Tau1Tau2.hat[which(RECAP1$Method == method)]))
+      empir.var.logPi.x1 <- cbind(empir.var.logPi.x1, var(RECAP1$logPi.x1.Tau1Tau2.hat[which(RECAP1$Method == method)]))
+      empir.var.logPi.x2 <- cbind(empir.var.logPi.x2, var(RECAP1$logPi.x2.Tau1Tau2.hat[which(RECAP1$Method == method)]))
+      empir.var.logPi.x3 <- cbind(empir.var.logPi.x3, var(RECAP1$logPi.x3.Tau1Tau2.hat[which(RECAP1$Method == method)]))
+    }
+    empir.var.logLambda0 <- as.data.frame(empir.var.logLambda0)
+    colnames(empir.var.logLambda0) <- nameColResults("empir.var.logLambda0")
+    empir.var.logPi.x1 <- as.data.frame(empir.var.logPi.x1)
+    colnames(empir.var.logPi.x1) <- nameColResults("empir.var.logPi.x1")
+    empir.var.logPi.x2 <- as.data.frame(empir.var.logPi.x2)
+    colnames(empir.var.logPi.x2) <- nameColResults("empir.var.logPi.x2")
+    empir.var.logPi.x3 <- as.data.frame(empir.var.logPi.x3)
+    colnames(empir.var.logPi.x3) <- nameColResults("empir.var.logPi.x3")
+    
+    
+    ## Coverage of the confidence intervals without transformation
+    coverage.Lambda0 <- NULL
+    coverage.Pi.x1 <- NULL
+    coverage.Pi.x2 <- NULL
+    coverage.Pi.x3 <- NULL
+    for (j in 1:length(list.methods)) {
+      method <- list.methods[j]
+      coverage.Lambda0 <- cbind(coverage.Lambda0, mean((RECAP1$CI.left.Lambda0.Tau1Tau2.hat[which(RECAP1$Method == method)] < Lambda0)&(RECAP1$CI.right.Lambda0.Tau1Tau2.hat[which(RECAP1$Method == method)] > Lambda0)) )
+      coverage.Pi.x1 <- cbind(coverage.Pi.x1, mean((RECAP1$CI.left.Pi.x1.Tau1Tau2.hat[which(RECAP1$Method == method)] < Pi.x1)&(RECAP1$CI.right.Pi.x1.Tau1Tau2.hat[which(RECAP1$Method == method)] > Pi.x1)) )
+      coverage.Pi.x2 <- cbind(coverage.Pi.x2, mean((RECAP1$CI.left.Pi.x2.Tau1Tau2.hat[which(RECAP1$Method == method)] < Pi.x2)&(RECAP1$CI.right.Pi.x2.Tau1Tau2.hat[which(RECAP1$Method == method)] > Pi.x2)) )
+      coverage.Pi.x3 <- cbind(coverage.Pi.x3, mean((RECAP1$CI.left.Pi.x3.Tau1Tau2.hat[which(RECAP1$Method == method)] < Pi.x3)&(RECAP1$CI.right.Pi.x3.Tau1Tau2.hat[which(RECAP1$Method == method)] > Pi.x3)) )
+    }
+    coverage.Lambda0 <- as.data.frame(coverage.Lambda0)
+    colnames(coverage.Lambda0) <- nameColResults("coverage.Lambda0")
+    coverage.Pi.x1 <- as.data.frame(coverage.Pi.x1)
+    colnames(coverage.Pi.x1) <- nameColResults("coverage.Pi.x1")
+    coverage.Pi.x2 <- as.data.frame(coverage.Pi.x2)
+    colnames(coverage.Pi.x2) <- nameColResults("coverage.Pi.x2")
+    coverage.Pi.x3 <- as.data.frame(coverage.Pi.x3)
+    colnames(coverage.Pi.x3) <- nameColResults("coverage.Pi.x3")
+    
+    ## Confidences intervals for the transformed estimates
+    
+    ## se estimation for the transformed estimates
+    se.est.logLambda0 <- NULL
+    se.est.logPi.x1 <- NULL
+    se.est.logPi.x2 <- NULL
+    se.est.logPi.x3 <- NULL
+    for (j in 1:length(list.methods)) {
+      method <- list.methods[j]
+      se.est.logLambda0 <- cbind(se.est.logLambda0, sqrt((RECAP1$var.Lambda0.Tau1Tau2.hat[which(RECAP1$Method == method)]) / (RECAP1$Lambda0.Tau1Tau2.hat[which(RECAP1$Method == method)])^2))
+      
+      se.est.logPi.x1 <- cbind(se.est.logPi.x1, sqrt((RECAP1$var.Pi.x1.Tau1Tau2.hat[which(RECAP1$Method == method)]) / (RECAP1$Pi.x1.Tau1Tau2.hat[which(RECAP1$Method == method)])^2))
+      se.est.logPi.x2 <- cbind(se.est.logPi.x2, sqrt((RECAP1$var.Pi.x2.Tau1Tau2.hat[which(RECAP1$Method == method)]) / (RECAP1$Pi.x2.Tau1Tau2.hat[which(RECAP1$Method == method)])^2))
+      se.est.logPi.x3 <- cbind(se.est.logPi.x3, sqrt((RECAP1$var.Pi.x3.Tau1Tau2.hat[which(RECAP1$Method == method)]) / (RECAP1$Pi.x3.Tau1Tau2.hat[which(RECAP1$Method == method)])^2))
+    }
+    se.est.logLambda0 <- as.data.frame(se.est.logLambda0)
+    colnames(se.est.logLambda0) <- nameColResults("se.est.logLambda0")
+    se.est.logPi.x1 <- as.data.frame(se.est.logPi.x1)
+    colnames(se.est.logPi.x1) <- nameColResults("se.est.logPi.x1")
+    se.est.logPi.x2 <- as.data.frame(se.est.logPi.x2)
+    colnames(se.est.logPi.x2) <- nameColResults("se.est.logPi.x2")
+    se.est.logPi.x3 <- as.data.frame(se.est.logPi.x3)
+    colnames(se.est.logPi.x3) <- nameColResults("se.est.logPi.x3")
+    
+    ## variance estimation for the transformed estimates
+    var.est.logLambda0 <- NULL
+    var.est.logPi.x1 <- NULL
+    var.est.logPi.x2 <- NULL
+    var.est.logPi.x3 <- NULL
+    for (j in 1:length(list.methods)) {
+      method <- list.methods[j]
+      var.est.logLambda0 <- cbind(var.est.logLambda0, ((RECAP1$var.Lambda0.Tau1Tau2.hat[which(RECAP1$Method == method)]) / (RECAP1$Lambda0.Tau1Tau2.hat[which(RECAP1$Method == method)])^2))
+      
+      var.est.logPi.x1 <- cbind(var.est.logPi.x1, ((RECAP1$var.Pi.x1.Tau1Tau2.hat[which(RECAP1$Method == method)]) / (RECAP1$Pi.x1.Tau1Tau2.hat[which(RECAP1$Method == method)])^2))
+      var.est.logPi.x2 <- cbind(var.est.logPi.x2, ((RECAP1$var.Pi.x2.Tau1Tau2.hat[which(RECAP1$Method == method)]) / (RECAP1$Pi.x2.Tau1Tau2.hat[which(RECAP1$Method == method)])^2))
+      var.est.logPi.x3 <- cbind(var.est.logPi.x3, ((RECAP1$var.Pi.x3.Tau1Tau2.hat[which(RECAP1$Method == method)]) / (RECAP1$Pi.x3.Tau1Tau2.hat[which(RECAP1$Method == method)])^2))
+    }
+    var.est.logLambda0 <- as.data.frame(var.est.logLambda0)
+    colnames(var.est.logLambda0) <- nameColResults("var.est.logLambda0")
+    var.est.logPi.x1 <- as.data.frame(var.est.logPi.x1)
+    colnames(var.est.logPi.x1) <- nameColResults("var.est.logPi.x1")
+    var.est.logPi.x2 <- as.data.frame(var.est.logPi.x2)
+    colnames(var.est.logPi.x2) <- nameColResults("var.est.logPi.x2")
+    var.est.logPi.x3 <- as.data.frame(var.est.logPi.x3)
+    colnames(var.est.logPi.x3) <- nameColResults("var.est.logPi.x3")
+    
+    # Construction of the CIs
+    RECAP1$CI.left.logLambda0.Tau1Tau2.hat <-  RECAP1$CI.left.Lambda0.Tau1Tau2.hat
+    RECAP1$CI.right.logLambda0.Tau1Tau2.hat <- RECAP1$CI.right.Lambda0.Tau1Tau2.hat
+    RECAP1$CI.left.logPi.x1.Tau1Tau2.hat <-  RECAP1$CI.left.Pi.x1.Tau1Tau2.hat
+    RECAP1$CI.right.logPi.x1.Tau1Tau2.hat <- RECAP1$CI.right.Pi.x1.Tau1Tau2.hat
+    RECAP1$CI.left.logPi.x2.Tau1Tau2.hat <-  RECAP1$CI.left.Pi.x2.Tau1Tau2.hat
+    RECAP1$CI.right.logPi.x2.Tau1Tau2.hat <- RECAP1$CI.right.Pi.x2.Tau1Tau2.hat
+    RECAP1$CI.left.logPi.x3.Tau1Tau2.hat <-  RECAP1$CI.left.Pi.x3.Tau1Tau2.hat
+    RECAP1$CI.right.logPi.x3.Tau1Tau2.hat <- RECAP1$CI.right.Pi.x3.Tau1Tau2.hat    
+    for (j in 1:length(list.methods)) {
+      method <- list.methods[j]
+      RECAP1$CI.left.logLambda0.Tau1Tau2.hat[which(RECAP1$Method == method)] <-    RECAP1$logLambda0[which(RECAP1$Method == method)] - qnorm(0.975) * (se.est.logLambda0[,j])
+      RECAP1$CI.right.logLambda0.Tau1Tau2.hat[which(RECAP1$Method == method)] <-    RECAP1$logLambda0[which(RECAP1$Method == method)] + qnorm(0.975) * (se.est.logLambda0[,j])
+      RECAP1$CI.left.logPi.x1.Tau1Tau2.hat[which(RECAP1$Method == method)] <-    RECAP1$logPi.x1[which(RECAP1$Method == method)] - qnorm(0.975) * (se.est.logPi.x1[,j])
+      RECAP1$CI.right.logPi.x1.Tau1Tau2.hat[which(RECAP1$Method == method)] <-    RECAP1$logPi.x1[which(RECAP1$Method == method)] + qnorm(0.975) * (se.est.logPi.x1[,j])
+      RECAP1$CI.left.logPi.x2.Tau1Tau2.hat[which(RECAP1$Method == method)] <-    RECAP1$logPi.x2[which(RECAP1$Method == method)] - qnorm(0.975) * (se.est.logPi.x2[,j])
+      RECAP1$CI.right.logPi.x2.Tau1Tau2.hat[which(RECAP1$Method == method)] <-    RECAP1$logPi.x2[which(RECAP1$Method == method)] + qnorm(0.975) * (se.est.logPi.x2[,j])
+      RECAP1$CI.left.logPi.x3.Tau1Tau2.hat[which(RECAP1$Method == method)] <-    RECAP1$logPi.x3[which(RECAP1$Method == method)] - qnorm(0.975) * (se.est.logPi.x3[,j])
+      RECAP1$CI.right.logPi.x3.Tau1Tau2.hat[which(RECAP1$Method == method)] <-    RECAP1$logPi.x3[which(RECAP1$Method == method)] + qnorm(0.975) * (se.est.logPi.x3[,j])
+    }
+    
+    # coverage of these CIs
+    coverage.logLambda0 <- NULL
+    coverage.logPi.x1 <- NULL
+    coverage.logPi.x2 <- NULL
+    coverage.logPi.x3 <- NULL
+    for (j in 1:length(list.methods)) {
+      method <- list.methods[j]
+      coverage.logLambda0 <- cbind(coverage.logLambda0, mean((RECAP1$CI.left.logLambda0.Tau1Tau2.hat[which(RECAP1$Method == method)] < logLambda0)&(RECAP1$CI.right.logLambda0.Tau1Tau2.hat[which(RECAP1$Method == method)] > logLambda0)))
+      coverage.logPi.x1 <- cbind(coverage.logPi.x1, mean((RECAP1$CI.left.logPi.x1.Tau1Tau2.hat[which(RECAP1$Method == method)] < logPi.x1)&(RECAP1$CI.right.logPi.x1.Tau1Tau2.hat[which(RECAP1$Method == method)] > logPi.x1)))
+      coverage.logPi.x2 <- cbind(coverage.logPi.x2, mean((RECAP1$CI.left.logPi.x2.Tau1Tau2.hat[which(RECAP1$Method == method)] < logPi.x2)&(RECAP1$CI.right.logPi.x2.Tau1Tau2.hat[which(RECAP1$Method == method)] > logPi.x2)))
+      coverage.logPi.x3 <- cbind(coverage.logPi.x3, mean((RECAP1$CI.left.logPi.x3.Tau1Tau2.hat[which(RECAP1$Method == method)] < logPi.x3)&(RECAP1$CI.right.logPi.x3.Tau1Tau2.hat[which(RECAP1$Method == method)] > logPi.x3)))
+    }
+    coverage.logLambda0 <- as.data.frame(coverage.logLambda0)
+    colnames(coverage.logLambda0) <- nameColResults("coverage.logLambda0")
+    coverage.logPi.x1 <- as.data.frame(coverage.logPi.x1)
+    colnames(coverage.logPi.x1) <- nameColResults("coverage.logPi.x1")
+    coverage.logPi.x2 <- as.data.frame(coverage.logPi.x2)
+    colnames(coverage.logPi.x2) <- nameColResults("coverage.logPi.x2")
+    coverage.logPi.x3 <- as.data.frame(coverage.logPi.x3)
+    colnames(coverage.logPi.x3) <- nameColResults("coverage.logPi.x3")
+    
+    # Mean variance of untransformed estimates
+    var.Lambda0 <- NULL
+    var.Pi.x1 <- NULL
+    var.Pi.x2 <- NULL
+    var.Pi.x3 <- NULL
+    for (j in 1:length(list.methods)) {
+      method <- list.methods[j]
+      var.Lambda0 <- cbind(var.Lambda0, mean((RECAP1$var.Lambda0.Tau1Tau2.hat[which(RECAP1$Method == method)])))
+      var.Pi.x1 <- cbind(var.Pi.x1, mean((RECAP1$var.Pi.x1.Tau1Tau2.hat[which(RECAP1$Method == method)])))
+      var.Pi.x2 <- cbind(var.Pi.x2, mean((RECAP1$var.Pi.x1.Tau1Tau2.hat[which(RECAP1$Method == method)])))
+      var.Pi.x3 <- cbind(var.Pi.x3, mean((RECAP1$var.Pi.x1.Tau1Tau2.hat[which(RECAP1$Method == method)])))
+    }
+    var.Lambda0 <- as.data.frame(var.Lambda0)
+    colnames(var.Lambda0) <- nameColResults("var.Lambda0")
+    var.Pi.x1 <- as.data.frame(var.Pi.x1)
+    colnames(var.Pi.x1) <- nameColResults("var.Pi.x1")
+    var.Pi.x2 <- as.data.frame(var.Pi.x2)
+    colnames(var.Pi.x2) <- nameColResults("var.Pi.x2")
+    var.Pi.x3 <- as.data.frame(var.Pi.x3)
+    colnames(var.Pi.x3) <- nameColResults("var.Pi.x3")
+    
+    # Mean variance of transformed estimates
+    var.logLambda0 <- apply(var.est.logLambda0, 2, mean)
+    var.logPi.x1 <- apply(var.est.logPi.x1, 2, mean)
+    var.logPi.x2 <- apply(var.est.logPi.x2, 2, mean)
+    var.logPi.x3 <- apply(var.est.logPi.x3, 2, mean)
+    names(var.logLambda0) <- nameColResults("var.logLambda0")
+    names(var.logPi.x1) <- nameColResults("var.logPi.x1")
+    names(var.logPi.x2) <- nameColResults("var.logPi.x2")
+    names(var.logPi.x3) <- nameColResults("var.logPi.x3")
+    
+    # Bias/mean untransformed estimate
+    mean.Lambda0 <- NULL
+    mean.Pi.x1 <- NULL
+    mean.Pi.x2 <- NULL
+    mean.Pi.x3 <- NULL
+    for (j in 1:length(list.methods)) {
+      method <- list.methods[j]
+      mean.Lambda0 <- cbind(mean.Lambda0, mean((RECAP1$Lambda0.Tau1Tau2.hat[which(RECAP1$Method == method)])))
+      mean.Pi.x1 <- cbind(mean.Pi.x1, mean((RECAP1$Pi.x1.Tau1Tau2.hat[which(RECAP1$Method == method)])))
+      mean.Pi.x2 <- cbind(mean.Pi.x2, mean((RECAP1$Pi.x2.Tau1Tau2.hat[which(RECAP1$Method == method)])))
+      mean.Pi.x3 <- cbind(mean.Pi.x3, mean((RECAP1$Pi.x3.Tau1Tau2.hat[which(RECAP1$Method == method)])))
+    }
+    mean.Lambda0 <- as.data.frame(mean.Lambda0)
+    colnames(mean.Lambda0) <- nameColResults("mean.Lambda0")
+    mean.Pi.x1 <- as.data.frame(mean.Pi.x1)
+    colnames(mean.Pi.x1) <- nameColResults("mean.Pi.x1")
+    mean.Pi.x2 <- as.data.frame(mean.Pi.x2)
+    colnames(mean.Pi.x2) <- nameColResults("mean.Pi.x2")
+    mean.Pi.x3 <- as.data.frame(mean.Pi.x3)
+    colnames(mean.Pi.x3) <- nameColResults("mean.Pi.x3")
+    
+    bias.Lambda0 <- mean.Lambda0 - Lambda0
+    colnames(bias.Lambda0) <- nameColResults("bias.Lambda0")
+    bias.Pi.x1 <- mean.Pi.x1 - Pi.x1
+    colnames(bias.Pi.x1) <- nameColResults("bias.Pi.x1")
+    bias.Pi.x2 <- mean.Pi.x2 - Pi.x2
+    colnames(bias.Pi.x2) <- nameColResults("bias.Pi.x2")
+    bias.Pi.x3 <- mean.Pi.x3 - Pi.x3
+    colnames(bias.Pi.x3) <- nameColResults("bias.Pi.x3")
+    
+    # Bias/mean transformed estimate
+    mean.logLambda0 <- NULL
+    mean.logPi.x1 <- NULL
+    mean.logPi.x2 <- NULL
+    mean.logPi.x3 <- NULL
+    for (j in 1:length(list.methods)) {
+      method <- list.methods[j]
+      mean.logLambda0 <- cbind(mean.logLambda0, mean((RECAP1$logLambda0[which(RECAP1$Method == method)])))
+      mean.logPi.x1 <- cbind(mean.logPi.x1, mean((RECAP1$logPi.x1[which(RECAP1$Method == method)])))
+      mean.logPi.x2 <- cbind(mean.logPi.x2, mean((RECAP1$logPi.x2[which(RECAP1$Method == method)])))
+      mean.logPi.x3 <- cbind(mean.logPi.x3, mean((RECAP1$logPi.x3[which(RECAP1$Method == method)])))
+    }
+    mean.logLambda0 <- as.data.frame(mean.logLambda0)
+    colnames(mean.logLambda0) <- nameColResults("mean.logLambda0")
+    mean.logPi.x1 <- as.data.frame(mean.logPi.x1)
+    colnames(mean.logPi.x1) <- nameColResults("mean.logPi.x1")
+    mean.logPi.x2 <- as.data.frame(mean.logPi.x2)
+    colnames(mean.logPi.x2) <- nameColResults("mean.logPi.x2")
+    mean.logPi.x3 <- as.data.frame(mean.logPi.x3)
+    colnames(mean.logPi.x3) <- nameColResults("mean.logPi.x3")
+    
+    bias.logLambda0 <- mean.logLambda0 - logLambda0
+    colnames(bias.logLambda0) <- nameColResults("bias.logLambda0")
+    bias.logPi.x1 <- mean.logPi.x1 - logPi.x1
+    colnames(bias.logPi.x1) <- nameColResults("bias.logPi.x1")
+    bias.logPi.x2 <- mean.logPi.x2 - logPi.x2
+    colnames(bias.logPi.x2) <- nameColResults("bias.logPi.x2")
+    bias.logPi.x3 <- mean.logPi.x3 - logPi.x3
+    colnames(bias.logPi.x3) <- nameColResults("bias.logPi.x3")
+    
+    # relative efficiency
+    eff.logLambda0 <- NULL
+    eff.logPi.x1 <- NULL
+    eff.logPi.x2 <- NULL
+    eff.logPi.x3 <- NULL
+    for (j in 1:length(list.methods)) {
+      method <- list.methods[j]
+      eff.logLambda0 <- cbind(eff.logLambda0, as.numeric(empir.var.logLambda0[1] / 
+                                                           empir.var.logLambda0[j]))
+      eff.logPi.x1 <- cbind(eff.logPi.x1, as.numeric(empir.var.logPi.x1[1] / 
+                                                       empir.var.logPi.x1[j]))
+      eff.logPi.x2 <- cbind(eff.logPi.x2, as.numeric(empir.var.logPi.x2[1] / 
+                                                       empir.var.logPi.x2[j]))
+      eff.logPi.x3 <- cbind(eff.logPi.x3, as.numeric(empir.var.logPi.x3[1] / 
+                                                       empir.var.logPi.x3[j]))
+    }
+    eff.logLambda0 <- as.data.frame(eff.logLambda0)
+    colnames(eff.logLambda0) <- nameColResults("eff.logLambda0")
+    eff.logPi.x1 <- as.data.frame(eff.logPi.x1)
+    colnames(eff.logPi.x1) <- nameColResults("eff.logPi.x1")
+    eff.logPi.x2 <- as.data.frame(eff.logPi.x2)
+    colnames(eff.logPi.x2) <- nameColResults("eff.logPi.x2")
+    eff.logPi.x3 <- as.data.frame(eff.logPi.x3)
+    colnames(eff.logPi.x3) <- nameColResults("eff.logPi.x3")
+    
+    # saving the results 
+    
+    details.transformedLambda0 <- rbind(details.transformedLambda0, 
+                                        cbind(empir.var.Lambda0, var.Lambda0, empir.var.logLambda0, 
+                                              t(var.logLambda0),
+                                              coverage.Lambda0, coverage.logLambda0, bias.Lambda0, bias.logLambda0, 
+                                              eff.logLambda0,
+                                              beta1 = beta1, beta2 = beta2, beta3 = beta3, Lambda0 = Lambda0, Pi.x1 = Pi.x1, Pi.x2 = Pi.x2, Pi.x3 = Pi.x3, logLambda0 = logLambda0, logPi.x1 = logPi.x1,  logPi.x2 = logPi.x2, logPi.x3 = logPi.x3,
+                                              n = as.character(RECAP1[1,]$n), K = as.character(RECAP1[1,]$K), Prob.y = as.character(RECAP1[1,]$Prob.y) ))
+    
+    details.transformedPi.x1 <- rbind(details.transformedPi.x1, cbind(empir.var.Pi.x1, var.Pi.x1, empir.var.logPi.x1, 
+                                                                      t(var.logPi.x1), 
+                                                                      coverage.Pi.x1, coverage.logPi.x1, bias.Pi.x1, bias.logPi.x1, 
+                                                                      eff.logPi.x1,
+                                                                      beta1 = beta1, beta2 = beta2, beta3 = beta3, Lambda0 = Lambda0, Pi.x1 = Pi.x1, Pi.x2 = Pi.x2, Pi.x3 = Pi.x3, logLambda0 = logLambda0, logPi.x1 = logPi.x1,  logPi.x2 = logPi.x2, logPi.x3 = logPi.x3, 
+                                                                      n = as.character(RECAP1[1,]$n), K = as.character(RECAP1[1,]$K), Prob.y = as.character(RECAP1[1,]$Prob.y) ))
+    
+    details.transformedPi.x2 <- rbind(details.transformedPi.x2, cbind(empir.var.Pi.x2, var.Pi.x2, empir.var.logPi.x2, 
+                                                                      t(var.logPi.x2), 
+                                                                      coverage.Pi.x2, coverage.logPi.x2, bias.Pi.x2, bias.logPi.x2, 
+                                                                      eff.logPi.x2,
+                                                                      beta1 = beta1, beta2 = beta2, beta3 = beta3, Lambda0 = Lambda0, Pi.x1 = Pi.x1, Pi.x2 = Pi.x2, Pi.x3 = Pi.x3, logLambda0 = logLambda0, logPi.x1 = logPi.x1,  logPi.x2 = logPi.x2, logPi.x3 = logPi.x3,
+                                                                      n = as.character(RECAP1[1,]$n), K = as.character(RECAP1[1,]$K), Prob.y = as.character(RECAP1[1,]$Prob.y) ))
+    
+    details.transformedPi.x3 <- rbind(details.transformedPi.x3, cbind(empir.var.Pi.x3, var.Pi.x3, empir.var.logPi.x3, 
+                                                                      t(var.logPi.x3), 
+                                                                      coverage.Pi.x3, coverage.logPi.x3, bias.Pi.x3, bias.logPi.x3, 
+                                                                      eff.logPi.x3,
+                                                                      beta1 = beta1, beta2 = beta2, beta3 = beta3, Lambda0 = Lambda0, Pi.x1 = Pi.x1, Pi.x2 = Pi.x2, Pi.x3 = Pi.x3, logLambda0 = logLambda0,logPi.x1 = logPi.x1,  logPi.x2 = logPi.x2, logPi.x3 = logPi.x3, 
+                                                                      n = as.character(RECAP1[1,]$n), K = as.character(RECAP1[1,]$K), Prob.y = as.character(RECAP1[1,]$Prob.y) ))
+  }
+  details.transformedLambda0 <- as.data.frame(details.transformedLambda0)
+  details.transformedPi.x1 <- as.data.frame(details.transformedPi.x1)
+  details.transformedPi.x2 <- as.data.frame(details.transformedPi.x2)
+  details.transformedPi.x3 <- as.data.frame(details.transformedPi.x3)
+  
+  col.names.transformedLambda0 <- colnames(details.transformedLambda0[,c(1:95)])
+  details.transformedLambda0[col.names.transformedLambda0] <- sapply(details.transformedLambda0[col.names.transformedLambda0], as.numeric)
+  details.transformedLambda0[col.names.transformedLambda0[-c(36:54)]] <- round(details.transformedLambda0[col.names.transformedLambda0[-c(36:54)]], digits = 4)
+  details.transformedLambda0[col.names.transformedLambda0[c(36:54)]] <- round(details.transformedLambda0[col.names.transformedLambda0[c(36:54)]], digits = 8)
+  save(details.transformedLambda0, 
+       file = paste0("details.transformedLambda0", simul.name, ".Rdata"))
+  write.csv(details.transformedLambda0, 
+            file = paste0("details.transformedLambda0", simul.name, ".csv"))
+  
+  col.names.transformedPi.x1 <- colnames(details.transformedPi.x1[,c(1:95)])
+  details.transformedPi.x1[col.names.transformedPi.x1] <- sapply(details.transformedPi.x1[col.names.transformedPi.x1], as.numeric)
+  details.transformedPi.x1[col.names.transformedPi.x1[-c(36:54)]] <- round(details.transformedPi.x1[col.names.transformedPi.x1[-c(36:54)]], digits = 4)
+  details.transformedPi.x1[col.names.transformedPi.x1[c(36:54)]] <- round(details.transformedPi.x1[col.names.transformedPi.x1[c(36:54)]], digits = 8)
+  save(details.transformedPi.x1, 
+       file = paste0("details.transformedPi.x1", simul.name, ".Rdata"))
+  write.csv(details.transformedPi.x1, file = paste0("details.transformedPi.x1", 
+                                                    simul.name, ".csv"))
+  
+  col.names.transformedPi.x2 <- colnames(details.transformedPi.x2[,c(1:95)])
+  details.transformedPi.x2[col.names.transformedPi.x2] <- sapply(details.transformedPi.x2[col.names.transformedPi.x2], as.numeric)
+  details.transformedPi.x2[col.names.transformedPi.x2[-c(36:54)]] <- round(details.transformedPi.x2[col.names.transformedPi.x2[-c(36:54)]], digits = 4)
+  details.transformedPi.x2[col.names.transformedPi.x2[c(36:54)]] <- round(details.transformedPi.x2[col.names.transformedPi.x2[c(36:54)]], digits = 8)
+  save(details.transformedPi.x2, file = paste0("details.transformedPi.x2", 
+                                               simul.name, ".Rdata"))
+  write.csv(details.transformedPi.x2, file = paste0("details.transformedPi.x2", 
+                                                    simul.name, ".csv"))
+  
+  col.names.transformedPi.x3 <- colnames(details.transformedPi.x3[,c(1:95)])
+  details.transformedPi.x3[col.names.transformedPi.x3] <- sapply(details.transformedPi.x3[col.names.transformedPi.x3], as.numeric)
+  details.transformedPi.x3[col.names.transformedPi.x3[-c(36:54)]] <- round(details.transformedPi.x3[col.names.transformedPi.x3[-c(36:54)]], digits = 4)
+  details.transformedPi.x3[col.names.transformedPi.x3[c(36:54)]] <- round(details.transformedPi.x3[col.names.transformedPi.x3[c(36:54)]], digits = 8)
+  save(details.transformedPi.x3, file = paste0("details.transformedPi.x3", 
+                                               simul.name, ".Rdata"))
+  write.csv(details.transformedPi.x3, file = paste0("details.transformedPi.x3", 
+                                                    simul.name, ".csv"))
+}
+
+
