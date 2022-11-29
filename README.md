@@ -77,3 +77,4 @@ Each script relies on functions provided in `help.functions.R`.
 * **scenarios.missingdata** - creation of a dataframe with the different scenarios to be investigated in the simulations in Web Appendix I (when covariate data is missing for individuals in the case cohort).
 * **X.generation** - generation of a gaussian variable, with unit variance and given mean.
  
+* **detailed.results** - analysis of the simulation results and creation of .csv and .Rdata files to save the details as in Section 5 and Web Appendix E.
