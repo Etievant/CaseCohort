@@ -68,9 +68,9 @@ Each script relies on functions provided in `help.functions.R`.
 
 * **conf.interval** - construction of 95% confidence interval with parameter estimate and its variance estimate, assuming normality.
 
-* **densityX1X3** and **densityX1** - used for the computation of the time-fixed baseline hazard in the simulations in Section 5 and Web Appendix E.
+* **densityX1X3** and **densityX1** - used for the computation of the constant baseline hazard in the simulations in Section 5 and Web Appendix E.
 
-* **E.RH** and **E.RH.w** - computation of $\text{E} \lbrace \text{exp}\(\beta_1 X_1 + \beta_2 X_2 + \beta_3 X_3 \)\rbrace$ and $\text{E} \lbrace\text{exp}\(\beta_1 X_1 + \beta_2 X_2 + \beta_3 X_3 | \boldsymbol{W} = \boldsymbol{w} \)\rbrace$, for $\boldsymbol{w}$ = {0, 1, 2, 3}, needed to compute the time-fixed baseline hazard and the sampling fractions to be used for an un-stratified and stratified sampling of the case-cohort in the simulations in Section 5 and Web Appendix E.
+* **E.RH** and **E.RH.w** - computation of $\text{E} \lbrace \text{exp}\(\beta_1 X_1 + \beta_2 X_2 + \beta_3 X_3 \)\rbrace$ and $\text{E} \lbrace\text{exp}\(\beta_1 X_1 + \beta_2 X_2 + \beta_3 X_3 | \boldsymbol{W} = \boldsymbol{w} \)\rbrace$, for $\boldsymbol{w}$ = {0, 1, 2, 3}, needed to compute the constant baseline hazard and the sampling fractions to be used for an un-stratified and stratified sampling of the case-cohort in the simulations in Section 5 and Web Appendix E.
 
 * **scenarios** - creation of a dataframe with the different scenarios to be investigated in the simulations in Section 5 and Web Appendix E.
 
