@@ -17,7 +17,7 @@
 ##              This script gives the simulation results displayed in Section 5 
 ##              and Web Appendix E.2 in Etievant and Gail (2022)
 ## -----------------------------------------------------------------------------
-## Required Package: dplyr, ggplot2, grid, gridExtra, gtable, parallel, 
+## Required Package: dplyr, ggplot2, grid, gridExtra, gtable, nnet, parallel, 
 ## survival, xtable
 ## -----------------------------------------------------------------------------
 ## Required Functions: use help.functions.R
@@ -31,6 +31,7 @@ library(ggplot2)
 library(grid)
 library(gridExtra)
 library(gtable)
+library(nnet)
 library(parallel)
 library(survival)
 library(xtable)
