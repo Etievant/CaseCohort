@@ -20,7 +20,7 @@
 ##              weaker proxy for X1 (correlation between X1 and its proxy of 
 ##              0.64 instead of 0.8)
 ## -----------------------------------------------------------------------------
-## Required Package: dplyr, ggplot2, grid, gridExtra, gtable, parallel, 
+## Required Package: dplyr, ggplot2, grid, gridExtra, gtable, nnet, parallel, 
 ## survival, xtable
 ## -----------------------------------------------------------------------------
 ## Required Functions: use help.functions.R
@@ -34,6 +34,7 @@ library(ggplot2)
 library(grid)
 library(gridExtra)
 library(gtable)
+library(nnet)
 library(parallel)
 library(survival)
 library(xtable)
