@@ -16,7 +16,7 @@
 ##              Appendix I in Etievant and Gail (2022)
 ##
 ## -----------------------------------------------------------------------------
-## Required Package: dplyr, ggplot2, grid, gridExtra, gtable, parallel, 
+## Required Package: dplyr, ggplot2, grid, gridExtra, gtable, nnet, parallel, 
 ## survival, xtable
 ## -----------------------------------------------------------------------------
 ## Required Functions: use help.functions.R
@@ -30,6 +30,7 @@ library(ggplot2)
 library(grid)
 library(gridExtra)
 library(gtable)
+library(nnet)
 library(parallel)
 library(survival)
 library(xtable)
@@ -2335,4 +2336,6 @@ save(details.transformedPi.x3, file = myfile)
 details.transformedPi.x3[col.names.transformedPi.x3[-c(52:78)]] <- round(details.transformedPi.x3[col.names.transformedPi.x3[-c(52:78)]], digits = 4)
 details.transformedPi.x3[col.names.transformedPi.x3[c(52:78)]] <- round(details.transformedPi.x3[col.names.transformedPi.x3[c(52:78)]], digits = 8)
 write.csv(details.transformedPi.x3, file = "details.transformedPi.x3_sd_MissingData.csv")
+
+
 
