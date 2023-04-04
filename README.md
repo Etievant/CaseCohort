@@ -1,4 +1,4 @@
-Replication of the simulation studies in "Inference for relative hazard and covariate-specific pure risk estimated from stratified and unstratified case-cohort data", by Etiévant and Gail (2022). The methods described in the article are implemented in the file `help.functions.R`.
+Replication of the simulation studies in "Cox model inference for relative hazard and pure risk from stratified weight-calibrated case-cohort data", by Etiévant and Gail (2023). The methods described in the article are implemented in the file `help.functions.R`.
 
 ### Required packages 
 
@@ -8,7 +8,7 @@ dplyr, ggplot2, grid, gridExtra, gtable, parallel, survival, xtable.
 
 ### Scripts
 
-* Script `simulations.R` replicates the simulations proposed by Etiévant and Gail (2022) in Section 5 and Web Appendix E.2.
+* Script `simulations.R` replicates the simulations proposed by Etiévant and Gail (2022) in Section 7 and Web Appendix E.2.
 
 * Scripts `simulations_postratifiedweights.R` replicates the simulations in Web Appendix E.4.
 
@@ -25,7 +25,7 @@ Each script relies on functions provided in `help.functions.R`.
 
 * Open and run the whole script(s).
 
-* The results of the simulations are saved in figures and tables. For example, when running script `simulations.R`, file `details.beta1.csv` will contain the simulation results displayed in Web Tables 3, 9 and 15 in Web Appendix E.2, and file `SimulationResults.RH.Scenario3.csv` will contain the results displayed in Table 1 in Section 5.
+* The results of the simulations are saved in figures and tables. For example, when running script `simulations.R`, file `details.beta1.csv` will contain the simulation results displayed in Web Tables 3, 9 and 15 in Web Appendix E.2, and file `SimulationResults.RH.Scenario3.csv` will contain the results displayed in Table 1 in Section 7.
 
 
 ### Functions provided in `help.functions.R`
