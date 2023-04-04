@@ -14,7 +14,7 @@
 ##              superpopulation, and one due to sampling from the cohort, as
 ##              proposed in Etievant and Gail (2022).
 ##
-##              This script gives the simulation results displayed in Section 5 
+##              This script gives the simulation results displayed in Section 7 
 ##              and Web Appendix E.2 in Etievant and Gail (2022)
 ## -----------------------------------------------------------------------------
 ## Required Package: dplyr, ggplot2, grid, gridExtra, gtable, nnet, parallel, 
@@ -359,7 +359,7 @@ Onerun <- function (p) {
     
     # Imputation of the covariate values for the individuals who are not in the 
     # stratified case cohort, from the proxy variables -------------------------
-    mod.pred.X2     <- multinom(X2 ~ W + X2.proxy + X1.proxy, 
+    mod.pred.X2     <- multinom(X2 ~ W + as.factor(X2.proxy) + X1.proxy, 
                                 data = casecohort, weights = weights)
     cohort$X2.pred  <-  predict(mod.pred.X2, 
                                 newdata = as.data.frame(cohort %>% 
@@ -1134,4 +1134,3 @@ colnames(results.Pi.scenario3)[1:72] <-c(nameColResults("empir.var.Pi"),
 results.Pi.scenario3 <- cbind(parameter = names.Pi, results.Pi.scenario3)
 write.csv(results.Pi.scenario3 , file = "SimulationResults.PR.Scenario3.csv")
 myfile  <- paste0("SimulationResults.PR.Scenario3.Rdata")
-
