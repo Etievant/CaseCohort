@@ -8,7 +8,7 @@ dplyr, ggplot2, grid, gridExtra, gtable, parallel, survival, xtable.
 
 ### Scripts
 
-* Script `simulations.R` replicates the simulations proposed by Etiévant and Gail (2022) in Section 7 and Web Appendix E.2.
+* Script `simulations.R` replicates the simulations proposed by Etiévant and Gail (2023) in Section 7 and Web Appendix E.2.
 
 * Scripts `simulations_postratifiedweights.R` replicates the simulations in Web Appendix E.4.
 
