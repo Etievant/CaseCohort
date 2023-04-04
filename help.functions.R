@@ -25,17 +25,17 @@
 ##                  in the stratified case cohort? If missing.data = TRUE, the
 ##                  arguments below need to be provided
 ##
-##  riskmat.phase2  at risk matrix for the phase-two data at all of the cases
-##                  event times, even that with missing covariate data. If
-##                  missing.data = TRUE, this argument needs to be provided
-##
-##  dNt.phase2      counting process matrix for failures in the phase-two data. 
-##                  If missing.data = TRUE and status.phase2 = NULL, this 
+##  riskmat.phase2  at risk matrix for the stratified case cohort (phase-two 
+##                  data) at all of the cases event times, even that with 
+##                  missing covariate data. If missing.data = TRUE, this 
 ##                  argument needs to be provided
 ##
-##  status.phase2   vector indicating the case status in the phase-two data. If 
-##                  missing.data = TRUE and dNt.phase2 = NULL, this argument 
-##                  needs to be provided
+##  dNt.phase2      counting process matrix for failures in the stratified
+##                  case cohort (phase-two data). 
+##
+##  status.phase2   vector indicating the case status in the stratified case 
+##                  cohort (phase-two data). If missing.data = TRUE, this 
+##                  argument needs to be provided
 ## -----------------------------------------------------------------------------
 
 estimation <- function (mod, Tau1 = NULL, Tau2 = NULL, x = NULL, 
@@ -208,22 +208,21 @@ estimation <- function (mod, Tau1 = NULL, Tau2 = NULL, x = NULL,
 ##  Tau2            right bound of the time interval considered for the 
 ##                  cumulative baseline hazard. Default is the last event time
 ##
-##
 ##  missing.data    is data on the p covariates missing for certain individuals
 ##                  in the stratified case cohort? If missing.data = TRUE, the
 ##                  arguments below need to be provided
 ##
-##  riskmat.phase2  at risk matrix for the phase-two data at all of the cases
-##                  event times, even that with missing covariate data. If 
-##                  missing.data = TRUE, this argument needs to be provided
-##
-##  dNt.phase2      counting process matrix for failures in the phase-two data. 
-##                  If missing.data = TRUE and status.phase2 = NULL, this 
+##  riskmat.phase2  at risk matrix for the stratified case cohort (phase-two 
+##                  data) at all of the cases event times, even that with 
+##                  missing covariate data. If missing.data = TRUE, this 
 ##                  argument needs to be provided
 ##
-##  status.phase2   vector indicating the case status in the phase-two data. If 
-##                  missing.data = TRUE and dNt.phase2 = NULL, this argument 
-##                  needs to be provided
+##  dNt.phase2      counting process matrix for failures in the stratified
+##                  case cohort (phase-two data). 
+##
+##  status.phase2   vector indicating the case status in the stratified case 
+##                  cohort (phase-two data). If missing.data = TRUE, this 
+##                  argument needs to be provided
 ## -----------------------------------------------------------------------------
 
 estimation.CumBH  <- function (mod, Tau1 = NULL, Tau2 = NULL, 
@@ -674,9 +673,6 @@ influences.RH   <- function (mod, calibrated = NULL, A = NULL) {
     calibrated <- FALSE
   }
   
-  mod.detail        <- coxph.detail(mod, riskmat = T)
-  beta.hat          <- mod$coefficients 
-  
   # ----------------------------------------------------------------------------
   # If calibrated weights ------------------------------------------------------
   
@@ -688,9 +684,11 @@ influences.RH   <- function (mod, calibrated = NULL, A = NULL) {
     # --------------------------------------------------------------------------
     # Quantities needed for the influences -------------------------------------
     
+    mod.detail        <- coxph.detail(mod, riskmat = T)
     riskmat           <- mod.detail$riskmat 
     number.times      <- ncol(riskmat) 
     n                 <- nrow(riskmat) 
+    beta.hat          <- mod$coefficients 
     X                 <- model.matrix(mod) 
     p                 <- ncol(X)
     weights           <- mod$weights # weights used for the fit, omega_i
@@ -876,10 +874,6 @@ influences.CumBH  <- function (mod, Tau1 = NULL, Tau2 = NULL, A = NULL,
   lambda0.t.hat     <- t(colSums(dNt) / S0t) 
   
   Lambda0.Tau1Tau2.hat <- sum(lambda0.t.hat[Tau1Tau2.times])
-  
-  if (is.null(calibrated)) {
-    calibrated <- FALSE
-  }
   
   # ----------------------------------------------------------------------------
   # If calibrated weights ------------------------------------------------------
@@ -1122,7 +1116,7 @@ influences.PR  <- function (beta, Lambda0.Tau1Tau2, x = NULL, infl.beta,
 ## -----------------------------------------------------------------------------
 ## Arguments:
 ##
-##  A.phase2        matrix with the values of the auxiliary variables to be used 
+##  A               matrix with the values of the auxiliary variables to be used 
 ##                  for the calibration of the weights in the stratified 
 ##                  case-cohort (phase-two data)
 ##
@@ -1557,7 +1551,7 @@ cohort.generation <- function (n, time = 10, bh, alpha1 = 0.05, alpha2 = -0.35,
 ##
 ##  estimated.weights   are the weights for the third phase of sampling (due to 
 ##                      missingness) estimated ? If estimated.weights = TRUE, 
-##                      B.phase2 needs to be provided
+##                      B needs to be provided
 ##
 ##  B.phase2            matrix for the phase.two data with as many columns as 
 ##                      phase-three strata, with one 1 per row, to indicate the 
@@ -1565,16 +1559,17 @@ cohort.generation <- function (n, time = 10, bh, alpha1 = 0.05, alpha2 = -0.35,
 ##                      argument needs to be provided if 
 ##                      estimated.weights = TRUE
 ##
-##  riskmat.phase2      at risk matrix for the phase-two data at all of the 
-##                      cases event times, even that with missing covariate
-##                      data
+##  riskmat.phase2      at risk matrix for the stratified case cohort (phase-two 
+##                      data) at all of the cases event times, even that with 
+##                      missing covariate data
 ##
-##  dNt.phase2          counting process matrix for failures in the phase-two
-##                      data. If status.phase2 = NULL, this argument needs to be
-##                      provided
+##  dNt.phase2          counting process matrix for failures in the stratified
+##                      case cohort (phase-two data). If status.phase2 = NULL, 
+##                      this argument needs to be provided
 ##
-##  status.phase2       vector indicating the case status in the phase-two data 
-##                      If dNt.phase2 = NULL, this argument needs to be provided
+##  status.phase2       vector indicating the case status in the stratified case 
+##                      cohort (phase-two data). If dNt.phase2 = NULL, this 
+##                      argument needs to be provided
 ## -----------------------------------------------------------------------------
 
 influences.missingdata <- function (mod, riskmat.phase2, dNt.phase2 = NULL, 
@@ -1930,16 +1925,17 @@ influences.missingdata <- function (mod, riskmat.phase2, dNt.phase2 = NULL,
 ##                      argument needs to be provided if 
 ##                      estimated.weights = TRUE
 ##
-##  riskmat.phase2      at risk matrix for the phase-two data at all of the 
-##                      cases event times, even that with missing covariate
-##                      data
+##  riskmat.phase2      at risk matrix for the stratified case cohort (phase-two 
+##                      data) at all of the cases event times, even that with 
+##                      missing covariate data
 ##
-##  dNt.phase2          counting process matrix for failures in the phase-two
-##                      data. If status.phase2 = NULL, this argument needs to be
-##                      provided
+##  dNt.phase2          counting process matrix for failures in the stratified
+##                      case cohort (phase-two data). If status.phase2 = NULL, 
+##                      this argument needs to be provided
 ##
-##  status.phase2       vector indicating the case status in the phase-two data 
-##                      If dNt.phase2 = NULL, this argument needs to be provided
+##  status.phase2       vector indicating the case status in the stratified case 
+##                      cohort (phase-two data). If dNt.phase2 = NULL, this 
+##                      argument needs to be provided
 ## -----------------------------------------------------------------------------
 
 influences.RH.missingdata <- function (mod, riskmat.phase2, dNt.phase2 = NULL, 
@@ -2157,16 +2153,17 @@ influences.RH.missingdata <- function (mod, riskmat.phase2, dNt.phase2 = NULL,
 ##                      argument needs to be provided if 
 ##                      estimated.weights = TRUE
 ##
-##  riskmat.phase2      at risk matrix for the phase-two data at all of the 
-##                      cases event times, even that with missing covariate
-##                      data
+##  riskmat.phase2      at risk matrix for the stratified case cohort (phase-two 
+##                      data) at all of the cases event times, even that with 
+##                      missing covariate data
 ##
-##  dNt.phase2          counting process matrix for failures in the phase-two
-##                      data. If status.phase2 = NULL, this argument needs to be
-##                      provided
+##  dNt.phase2          counting process matrix for failures in the stratified
+##                      case cohort (phase-two data). If status.phase2 = NULL, 
+##                      this argument needs to be provided
 ##
-##  status.phase2       vector indicating the case status in the phase-two data 
-##                      If dNt.phase2 = NULL, this argument needs to be provided
+##  status.phase2       vector indicating the case status in the stratified case 
+##                      cohort (phase-two data). If dNt.phase2 = NULL, this 
+##                      argument needs to be provided
 ## -----------------------------------------------------------------------------
 
 influences.CumBH.missingdata <- function (mod, riskmat.phase2, 
@@ -2917,8 +2914,8 @@ robustvariance <- function (infl) {
 ## -----------------------------------------------------------------------------
 ## Function: variance()
 ## -----------------------------------------------------------------------------
-## Description: This function returns the variance estimate that us influence
-##              -based and follows the complete variance decomposition, for 
+## Description: This function returns the variance estimate that influence-based
+##              and follows the complete variance decomposition, for 
 ##              parameters such as log-relative hazard, cumulative baseline 
 ##              hazard or covariate specific pure-risk. The function works with 
 ##              design weights or calibrated weights
@@ -3057,7 +3054,7 @@ variance <- function(n, casecohort, weights = NULL, infl, calibrated = NULL,
 ##                    strata.n (stratum size), for each individual in the phase 
 ##                    two sample. If stratified = FALSE, data frame with m 
 ##                    (number of sampled individuals) and n (cohort size), for 
-##                    each individual in the phase two sample
+##                    each individual in the case cohort data
 ##
 ## weights            vector with design weights for each individual in the case
 ##                    cohort data
@@ -3103,11 +3100,12 @@ variance.missingdata <- function (n, casecohort, casecohort.phase2,
       casecohort.m    <- casecohort$strata.m
       casecohort.m.n  <- casecohort.m / casecohort.n
       casecohort.n.m  <- casecohort.n / casecohort.m
+      casecohort.status <- casecohort$status
       
       product.covar.weight <- function (indiv) { 
         return((casecohort.W == casecohort.W[indiv]) * 
                  (casecohort.W3 == casecohort.W3[indiv]) * 
-                 (casecohort.W3[indiv] == 0) * 
+                 (casecohort.status[indiv] == 0) * 
                  (1 - casecohort.m.n * (casecohort.n - 1) / (casecohort.m - 1) ))
       }
       prod.covar.weight       <- do.call(rbind, lapply(1:nrow(casecohort), 
@@ -3129,10 +3127,11 @@ variance.missingdata <- function (n, casecohort, casecohort.phase2,
       casecohort.m    <- casecohort$m
       casecohort.m.n  <- casecohort.m / casecohort.n
       casecohort.n.m  <- casecohort.n / casecohort.m
+      casecohort.status <- casecohort$status
       
       product.covar.weight <- function (indiv) { 
         return((casecohort.W3 == casecohort.W3[indiv]) * 
-                 (casecohort.W3[indiv] == 0) * 
+                 (casecohort.status[indiv] == 0) * 
                  (1 - casecohort.m.n * (casecohort.n - 1) / (casecohort.m - 1) ))
       }
       prod.covar.weight       <- do.call(rbind, lapply(1:nrow(casecohort), 
@@ -3160,10 +3159,12 @@ variance.missingdata <- function (n, casecohort, casecohort.phase2,
       phase2.m    <- casecohort.phase2$strata.m
       phase2.m.n  <- phase2.m / phase2.n
       phase2.n.m  <- phase2.n / phase2.m
+      phase2.status <- casecohort.phase2$status
+      
       product.covar.weight <- function (indiv) {
         return((phase2.W == phase2.W[indiv]) * 
                  (phase2.W3 == phase2.W3[indiv]) * 
-                 (phase2.W3[indiv] == 0) * 
+                 (phase2.status[indiv] == 0) * 
                  (1 - phase2.m.n * (phase2.n - 1) / (phase2.m - 1) ))
       }
       prod.covar.weights        <- do.call(rbind, 
@@ -3185,9 +3186,11 @@ variance.missingdata <- function (n, casecohort, casecohort.phase2,
       phase2.m    <- casecohort.phase2$m
       phase2.m.n  <- phase2.m / phase2.n
       phase2.n.m  <- phase2.n / phase2.m
+      phase2.status <- casecohort.phase2$status
+      
       product.covar.weight <- function (indiv) {
         return((phase2.W3 == phase2.W3[indiv]) * 
-                 (phase2.W3[indiv] == 0) * 
+                 (phase2.status[indiv] == 0) * 
                  (1 - phase2.m.n * (phase2.n - 1) / (phase2.m - 1) ))
       }
       prod.covar.weights        <- do.call(rbind, 
@@ -3208,13 +3211,11 @@ variance.missingdata <- function (n, casecohort, casecohort.phase2,
   return(variance = var)
 }
 
-
-
 ## -----------------------------------------------------------------------------
 ## Function: detailed.results()
 ## -----------------------------------------------------------------------------
 ## Description:   This function analyzes the results of the simulations and save
-##                the details in .csv and .Rdata files. The saved tables contain
+##                the details in csv and Rdata files. The saved tables contain
 ##                the same information as that displayed in Section 5 in the 
 ##                main document and in Web Appendix E in Etievant and Gail 
 ##                (2022)
@@ -4073,5 +4074,3 @@ detailed.results <- function (RECAP, param, Nreplic, list.methods,
   write.csv(details.transformedPi.x3, file = paste0("details.transformedPi.x3", 
                                                     simul.name, ".csv"))
 }
-
-
