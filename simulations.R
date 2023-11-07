@@ -15,7 +15,7 @@
 ##              proposed in Etievant and Gail (2022).
 ##
 ##              This script gives the simulation results displayed in Section 7 
-##              and Web Appendix E.2 in Etievant and Gail (2022)
+##              and Web Appendix D.2 in Etievant and Gail (2022)
 ## -----------------------------------------------------------------------------
 ## Required Package: dplyr, ggplot2, grid, gridExtra, gtable, nnet, parallel, 
 ## survival, xtable
@@ -323,6 +323,7 @@ Onerun <- function (p) {
     # corresponding CIs --------------------------------------------------------
     var.beta          <- variance(n = n, casecohort = casecohort, 
                                   infl = infl.beta, stratified = TRUE)
+    # to save the estimated phase-two component of the variance, include argument variance.phase2 = TRUE
     var.Lambda0.Tau1Tau2 <- variance(n = n, casecohort = casecohort, 
                                      infl = infl.Lambda0.Tau1Tau2, 
                                      stratified = TRUE)
@@ -379,8 +380,9 @@ Onerun <- function (p) {
                                type = "response")
     
     # Running the coxph model on the imputed cohort data -----------------------
-    mod.imputedcohort <- coxph(Surv(times, status) ~ X1.pred + X2.pred + 
-                                 X3.pred, data = cohort, robust = TRUE)
+    mod.imputedcohort <- coxph(Surv(times, status) ~ X1.pred + X2 + X3.pred, 
+                               data = cohort, robust = TRUE) 
+    # we assume X2 is measured on the whole cohort
     
     # Building the auxiliary variables proposed by Breslow et al. (2019) -------
     A.Breslow <- auxiliary.construction(mod.imputedcohort, Tau1, Tau2) 
@@ -399,7 +401,7 @@ Onerun <- function (p) {
                            data = casecohort, weight = weights.calib1, 
                            id = id, robust = TRUE)
     A.Shin <- c(time.on.study * exp(mod.calib1$coefficients %*% 
-                                      t(cbind(cohort$X1.pred, cohort$X2.pred, 
+                                      t(cbind(cohort$X1.pred, cohort$X2, 
                                               cohort$X3.pred))))
     
     # Calibrating the design weights against the auxiliary variables proposed by
@@ -503,6 +505,7 @@ Onerun <- function (p) {
                                         stratified = TRUE, 
                                         infl = infl.beta.calib,
                                         infl2 = infl2.beta.calib)
+     # to save the estimated phase-two component of the variance, include argument variance.phase2 = TRUE
     var.Lambda0.Tau1Tau2.calib <- variance(n = n, casecohort = casecohort, 
                                         cohort = cohort, calibrated = TRUE, 
                                         stratified = TRUE, 
@@ -624,6 +627,7 @@ Onerun <- function (p) {
     # corresponding CIs --------------------------------------------------------
     var.beta.unstrat <- variance(n = n, casecohort = unstrat.casecohort, 
                                  infl = infl.beta.unstrat, stratified = FALSE)
+     # to save the estimated phase-two component of the variance, include argument variance.phase2 = TRUE
     var.Lambda0.Tau1Tau2.unstrat <- variance(n = n, 
                                              casecohort = unstrat.casecohort, 
                                              infl = infl.Lambda0.Tau1Tau2.unstrat, 
@@ -691,8 +695,9 @@ Onerun <- function (p) {
     
     # Running the coxph model on the imputed cohort data -----------------------
     mod.imputedcohort.unstrat <- coxph(Surv(times, status) ~ X1.pred.unstrat + 
-                                         X2.pred.unstrat + X3.pred.unstrat, 
-                                       data = cohort, robust = TRUE)
+                                         X2 + X3.pred.unstrat, data = cohort, 
+                                       robust = TRUE)
+        # we assume X2 is measured on the whole cohort
     
     # Building the auxiliary variables proposed by Breslow et al. (2019) -------
     A.Breslow <- auxiliary.construction(mod.imputedcohort.unstrat, Tau1, Tau2) 
@@ -712,7 +717,7 @@ Onerun <- function (p) {
                            id = id, robust = TRUE)
     A.Shin <- c(time.on.study * exp(mod.calib1.unstrat$coefficients %*% 
                                       t(cbind(cohort$X1.pred.unstrat, 
-                                              cohort$X2.pred.unstrat, 
+                                              cohort$X2, 
                                               cohort$X3.pred.unstrat))))
     
     # Calibrating the design weights against the auxiliary variables proposed by
@@ -816,6 +821,7 @@ Onerun <- function (p) {
                                        stratified = FALSE, 
                                        infl = infl.beta.calib.unstrat,
                                        infl2 = infl2.beta.calib.unstrat)
+     # to save the estimated phase-two component of the variance, include argument variance.phase2 = TRUE
     var.Lambda0.Tau1Tau2.calib.unstrat <- variance(n = n, 
                                                    casecohort = unstrat.casecohort, 
                                                    cohort = cohort, 
