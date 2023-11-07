@@ -15,8 +15,8 @@
 ##              proposed in Etievant and Gail (2022).
 ##
 ##              This script gives the simulation results displayed in Web
-##              Appendix E.5 in Etievant and Gail (2022), i.e., the same 
-##              simulations as in Section 5 and Web Appendix E.2, but with a
+##              Appendix D.6 in Etievant and Gail (2022), i.e., the same 
+##              simulations as in Section 7 and Web Appendix D.2, but with a
 ##              weaker proxy for X1 (correlation between X1 and its proxy of 
 ##              0.64 instead of 0.8)
 ## -----------------------------------------------------------------------------
@@ -415,7 +415,7 @@ Onerun <- function (p) {
                                type = "response")
     
     # Running the coxph model on the imputed cohort data -----------------------
-    mod.imputedcohort <- coxph(Surv(times, status) ~ X1.pred + X2.pred + 
+    mod.imputedcohort <- coxph(Surv(times, status) ~ X1.pred + X2 + 
                                  X3.pred, data = cohort, robust = TRUE)
     
     # Building the auxiliary variables proposed by Breslow et al. (2019) -------
@@ -435,7 +435,7 @@ Onerun <- function (p) {
                            data = casecohort, weight = weights.calib1, 
                            id = id, robust = TRUE)
     A.Shin <- c(time.on.study * exp(mod.calib1$coefficients %*% 
-                                      t(cbind(cohort$X1.pred, cohort$X2.pred, 
+                                      t(cbind(cohort$X1.pred, cohort$X2, 
                                               cohort$X3.pred))))
     
     # Calibrating the design weights against the auxiliary variables proposed by
@@ -728,7 +728,7 @@ Onerun <- function (p) {
     
     # Running the coxph model on the imputed cohort data -----------------------
     mod.imputedcohort.unstrat <- coxph(Surv(times, status) ~ X1.pred.unstrat + 
-                                         X2.pred.unstrat + X3.pred.unstrat, 
+                                         X2 + X3.pred.unstrat, 
                                        data = cohort, robust = TRUE)
     
     # Building the auxiliary variables proposed by Breslow et al. (2019) -------
@@ -749,7 +749,7 @@ Onerun <- function (p) {
                                    id = id, robust = TRUE)
     A.Shin <- c(time.on.study * exp(mod.calib1.unstrat$coefficients %*% 
                                       t(cbind(cohort$X1.pred.unstrat, 
-                                              cohort$X2.pred.unstrat, 
+                                              cohort$X2, 
                                               cohort$X3.pred.unstrat))))
     
     # Calibrating the design weights against the auxiliary variables proposed by
