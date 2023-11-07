@@ -14,7 +14,7 @@
 ##              (2022).
 ##
 ##              This script gives the simulation results displayed in Web 
-##              Appendix E.4 in Etievant and Gail (2022)
+##              Appendix D.5 in Etievant and Gail (2022)
 ## -----------------------------------------------------------------------------
 ## Required Package: dplyr, ggplot2, grid, gridExtra, gtable, parallel, 
 ## survival, xtable
