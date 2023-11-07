@@ -13,7 +13,7 @@
 ##              with two or three variance components.
 ##
 ##              This script gives the simulation results displayed in Web
-##              Appendix I in Etievant and Gail (2022)
+##              Appendix G in Etievant and Gail (2022)
 ##
 ## -----------------------------------------------------------------------------
 ## Required Package: dplyr, ggplot2, grid, gridExtra, gtable, nnet, parallel, 
