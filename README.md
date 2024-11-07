@@ -10,11 +10,11 @@ dplyr, ggplot2, grid, gridExtra, gtable, parallel, survival, xtable.
 
 * Script `simulations.R` replicates the simulations proposed by Etiévant and Gail (Lifetime Data Analysis, 2024) in Section 7 and Web Appendix D.2.
 
-* Scripts `simulations_postratifiedweights.R` replicates the simulations in Web Appendix D.5.
+* Script `simulations_postratifiedweights.R` replicates the simulations in Web Appendix D.5.
 
-* Scripts `simulations_weakerproxy.R` replicates the simulations in Web Appendix D.6.
+* Script `simulations_weakerproxy.R` replicates the simulations in Web Appendix D.6.
 
-* Scripts `simulations_missingdata.R` replicates the simulations Web Appendix G.
+* Script `simulations_missingdata.R` replicates the simulations Web Appendix G.
 
 Each script relies on functions provided in `help.functions.R`.
 
